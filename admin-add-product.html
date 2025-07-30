@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Add Product</title>
+  <link rel="stylesheet" href="add-products.css" />
+</head>
+<body>
+  <div class="admin-container">
+    <main class="main-content">
+      <h1>Add New Product</h1>
+      <form id="addProductForm" enctype="multipart/form-data">
+        <div class="form-group">
+          <label for="name">Product Name</label>
+          <input type="text" id="name" required />
+        </div>
+
+        <div class="form-group">
+          <label for="price">Price ($)</label>
+          <input type="number" id="price" name="price" step="any" placeholder="Enter price" />
+
+        </div>
+
+        <div class="form-group">
+          <label for="category">Category</label>
+          <select id="category" required>
+            <option value="electronics">Electronics</option>
+            <option value="clothing">Clothing</option>
+            <option value="food">Food</option>
+            <option value="food">Kitchen</option>
+            <option value="food">Books</option>
+          </select>
+        </div>
+
+    <div class="form-group image-preview-group">
+  <label for="image">Product Image</label>
+  <div class="image-preview-box" id="imagePreviewBox">
+    <span>Click or drag image here</span>
+    <button type="button" id="removeImageBtn" class="remove-image" style="display: none;">&times;</button>
+  </div>
+  <input type="file" id="image" accept="image/*" required style="display: none;" />
+</div>
+ 
+    <button type="submit" class="save-btn">Add Product</button>
+  </form>
+  <p id="status"></p>
+</main>
+  </div>
+
+  <!-- Firebase + JS -->
+  <script type="module" src="admin-add-product.js"></script>
+</body>
+</html>

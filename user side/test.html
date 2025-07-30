@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Image Upload Preview</title>
+  <style>
+    .preview {
+      width: 200px;
+      height: 200px;
+      border: 2px dashed #ccc;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      background: #f8f8f8;
+    }
+    .preview img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+  </style>
+</head>
+<body>
+  <div class="preview" id="previewBox"><span>Select an image</span></div>
+  <input type="file" id="image" style="display: none;" />
+
+  <script>
+    const previewBox = document.getElementById("previewBox");
+    const imageInput = document.getElementById("image");
+
+    previewBox.addEventListener("click", () => {
+      imageInput.click();
+    });
+
+    imageInput.addEventListener("change", () => {
+      const file = imageInput.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          previewBox.innerHTML = `<img src="${e.target.result}" alt="Preview">`;
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,236 @@
+1<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Wholesaler Dashboard | E-commerce</title>
+  <link rel="stylesheet" href="index.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"/>
+
+  <style>
+    .hamburger {
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: #333;
+      display: none;
+    }
+
+    .close-sidebar-btn {
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      color: white;
+      position: absolute;
+      top: 15px;
+      right: 20px;
+      cursor: pointer;
+      display: none;
+      z-index: 1100;
+    }
+
+   @media (max-width: 780px) {
+  .hamburger {
+    display: block;
+    z-index: 1101;
+  }
+
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: -250px;
+    width: 250px;
+    height: 100%;
+    z-index: 1100;
+    background: linear-gradient(180deg, var(--primary), var(--secondary));
+    transition: left 0.3s ease;
+  }
+
+  .sidebar.active {
+    left: 0;
+  }
+
+  .main-content {
+    transition: margin-left 0.3s ease;
+  }
+
+  .main-content.shifted {
+    margin-left: 250px;
+  }
+
+  .close-sidebar-btn {
+    display: block;
+  }
+
+  .sidebar:not(.active) .close-sidebar-btn {
+    display: none;
+  }
+
+  .sidebar.active ~ .main-content .hamburger {
+    display: none;
+  }
+}
+
+  </style>
+</head>
+<body>
+
+  <!-- Sidebar -->
+  <div class="sidebar" id="sidebar">
+    <button class="close-sidebar-btn" id="closeSidebar"><i class="fas fa-times"></i></button>
+    <div class="menu">
+      <div class="logo">
+        <h2><i class="fas fa-store"></i> <span>Admin</span></h2>
+      </div>
+      <a class="link" href="index.html">
+        <div class="menu-item active"><i class="fas fa-chart-line"></i> <span class="menu-text">Dashboard</span></div>
+      </a>
+      <a class="link" href="admin-products.html">
+        <div class="menu-item"><i class="fas fa-box"></i> <span class="menu-text">Products</span></div>
+      </a>
+      <a class="link" href="orders.html">
+        <div class="menu-item"><i class="fas fa-shopping-cart"></i> <span class="menu-text">Orders</span></div>
+      </a>
+      <a class="link" href="#">
+        <div class="menu-item"><i class="fas fa-users"></i> <span class="menu-text">Customers</span></div>
+      </a>
+      <a class="link" href="#">
+        <div class="menu-item"><i class="fas fa-chart-pie"></i> <span class="menu-text">Analytics</span></div>
+      </a>
+      <a class="link" href="settings.html">
+        <div class="menu-item"><i class="fas fa-cog"></i> <span class="menu-text">Settings</span></div>
+      </a>
+      <a class="link" href="profile.html">
+        <div class="menu-item"><i class="fas fa-user"></i> <span class="menu-text">Profile</span></div>
+      </a>
+
+       <a class="link" href="retailer.html">
+        <div class="menu-item"><i class="fas fa-user"></i> <span class="menu-text">Retail side</span></div>
+      </a>
+
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main-content" id="mainContent">
+    <!-- Header -->
+    <div class="header">
+      <button id="menuToggle" class="hamburger"><i class="fas fa-bars"></i></button>
+      <h1>Admin Dashboard</h1>
+      <div class="user-info">
+        <div class="notifications"><i class="fas fa-bell"></i></div>
+        <div class="user-avatar">A</div>
+        <div class="user-details">
+          <div class="user-name">Admin User</div>
+          <div class="user-role">Administrator</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-container">
+      <div class="stat-card">
+        <div class="stat-icon" style="background: var(--primary);"><i class="fas fa-shopping-cart"></i></div>
+        <div class="stat-content">
+          <h3>142</h3><p>Total Orders</p>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon" style="background: var(--success);"><i class="fas fa-dollar-sign"></i></div>
+        <div class="stat-content">
+          <h3>$24,580</h3><p>Total Revenue</p>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon" style="background: var(--warning);"><i class="fas fa-users"></i></div>
+        <div class="stat-content">
+          <h3>4,821</h3><p>Customers</p>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon" style="background: var(--danger);"><i class="fas fa-box-open"></i></div>
+        <div class="stat-content">
+          <h3>87</h3><p>Low Stock Items</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Products -->
+    <div class="section-card">
+      <div class="section-header">
+        <h2>Recent Products</h2>
+        <a href="admin-add-product.html">
+          <button class="btn btn-primary"><i class="fas fa-plus"></i> Add Product</button>
+        </a>
+        
+      </div>
+      <div class="products-grid" id="recentProducts"></div>
+
+    </div>
+
+    <!-- Orders Table -->
+    <div class="section-card">
+      <div class="section-header">
+        <h2>Recent Orders</h2>
+        <button class="btn btn-outline">View All <i class="fas fa-arrow-right"></i></button>
+      </div>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Order ID</th><th>Customer</th><th>Date</th><th>Amount</th><th>Status</th><th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>#ORD-7841</td><td>John Smith</td><td>Jun 15, 2023</td><td>$289.99</td><td><span class="status status-shipped">Shipped</span></td><td><button class="btn btn-outline">View</button></td>
+            </tr>
+            <tr>
+              <td>#ORD-7840</td><td>Sarah Johnson</td><td>Jun 14, 2023</td><td>$1,199.99</td><td><span class="status status-processing">Processing</span></td><td><button class="btn btn-outline">View</button></td>
+            </tr>
+            <tr>
+              <td>#ORD-7839</td><td>Michael Brown</td><td>Jun 14, 2023</td><td>$599.99</td><td><span class="status status-delivered">Delivered</span></td><td><button class="btn btn-outline">View</button></td>
+            </tr>
+            <tr>
+              <td>#ORD-7838</td><td>Emily Davis</td><td>Jun 13, 2023</td><td>$299.99</td><td><span class="status status-shipped">Shipped</span></td><td><button class="btn btn-outline">View</button></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Hidden Add Product Form -->
+    <div class="section-card" id="product-form" style="display: none;">
+      <div class="section-header">
+        <h2>Add New Product</h2>
+      </div>
+      <div class="form-grid">
+        <div class="form-group"><label for="product-name">Product Name</label><input type="text" id="product-name" placeholder="Enter product name" /></div>
+        <div class="form-group"><label for="product-price">Price ($)</label><input type="number" id="product-price" placeholder="Enter price" /></div>
+        <div class="form-group"><label for="product-category">Category</label>
+          <select id="product-category">
+            <option value="">Select category</option>
+            <option value="electronics">Electronics</option>
+            <option value="clothing">Clothing</option>
+            <option value="home">Home & Kitchen</option>
+            <option value="books">Books</option>
+          </select>
+        </div>
+        <div class="form-group"><label for="product-stock">Stock Quantity</label><input type="number" id="product-stock" placeholder="Enter quantity" /></div>
+        <div class="form-group"><label for="product-image">Product Image</label><input type="file" id="product-image" /></div>
+        <div class="form-group"><label for="product-description">Description</label><textarea id="product-description" placeholder="Enter product description"></textarea></div>
+      </div>
+      <div style="display: flex; gap: 15px; margin-top: 20px;">
+        <button class="btn btn-primary" id="save-product">Save Product</button>
+        <button class="btn btn-outline" id="cancel-product">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sidebar Toggle Script -->
+ <script type="module" src="main.js"></script>
+
+
+</body>
+</html>

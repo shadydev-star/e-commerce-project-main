@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Orders</title>
+  <link rel="stylesheet" href="admin.css" />
+</head>
+<body>
+  <div class="admin-container">
+    <aside class="sidebar" id="side-bar">
+      <h2>Admin Panel</h2>
+      <button id="closeSidebar" class="hamburger close-btn">&#10005;</button>
+      <nav>
+        <ul>
+        <li><a href="/index.html">📊 Dashboard</a></li>
+        <li><a href="admin-products.html">📦 Products</a></li>
+        <li><a href="orders.html">🧾 Orders</a></li>
+        <li><a href="profile.html">👤 Profile</a></li>
+        <li><a href="settings.html">⚙️ Settings</a></li>
+        </ul>
+      </nav>
+    </aside>
+
+    <main class="main-content">
+      <header class="header">
+        <button id="menuToggle" class="hamburger">&#9776;</button>
+        <h1>Order Management</h1>
+        <div class="admin-info">
+          <span>admin@example.com</span>
+        </div>
+      </header>
+
+      <section class="orders-section">
+        <div class="orders-header">
+          <h2>Orders</h2>
+          <select id="orderFilter">
+            <option>All</option>
+            <option>Pending</option>
+            <option>Shipped</option>
+            <option>Delivered</option>
+          </select>
+        </div>
+
+        <div class="order-table-wrapper">
+          <table class="order-table">
+            <thead>
+              <tr>
+                <th>Order ID</th>
+                <th>Customer</th>
+                <th>Date</th>
+                <th>Total</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>#1001</td>
+                <td>John Doe</td>
+                <td>2025-06-13</td>
+                <td>$150.00</td>
+                <td><span class="badge pending">Pending</span></td>
+                <td>
+                  <button class="action-btn">View</button>
+                  <button class="action-btn">Update</button>
+                  <button class="action-btn delete">Delete</button>
+                </td>
+              </tr>
+              <tr>
+                <td>#1002</td>
+                <td>Jane Smith</td>
+                <td>2025-06-12</td>
+                <td>$75.00</td>
+                <td><span class="badge shipped">Shipped</span></td>
+                <td>
+                  <button class="action-btn">View</button>
+                  <button class="action-btn">Update</button>
+                  <button class="action-btn delete">Delete</button>
+                </td>
+              </tr>
+              <tr>
+                <td>#1003</td>
+                <td>Bob Lee</td>
+                <td>2025-06-10</td>
+                <td>$250.00</td>
+                <td><span class="badge delivered">Delivered</span></td>
+                <td>
+                  <button class="action-btn">View</button>
+                  <button class="action-btn">Update</button>
+                  <button class="action-btn delete">Delete</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+
+    <!-- Order View Modal -->
+<div class="modal" id="orderModal">
+  <div class="modal-content">
+    <span id="closeOrderModal" class="close">&times;</span>
+    <h2>Order Details</h2>
+    <p><strong>Order ID:</strong> <span id="modalOrderId"></span></p>
+    <p><strong>Customer:</strong> <span id="modalCustomer"></span></p>
+    <p><strong>Date:</strong> <span id="modalDate"></span></p>
+    <p><strong>Total:</strong> <span id="modalTotal"></span></p>
+    <p><strong>Status:</strong> <span id="modalStatus"></span></p>
+  </div>
+</div>
+
+
+  </div>
+
+  <script src="orders.js" >
+</script>
+
+</body>
+</html>

@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+   
+    
+
+    <!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Settings</title>
+  <link rel="stylesheet" href="admin.css" />
+</head>
+<body>
+  <div class="admin-container">
+    <aside class="sidebar" id="side-bar">
+      <h2>Admin Panel</h2>
+      <button id="closeSidebar" class="hamburger close-btn">&#10005;</button>
+      <nav>
+        <ul>
+        <li><a href="/index.html">📊 Dashboard</a></li>
+        <li><a href="admin-products.html">📦 Products</a></li>
+        <li><a href="orders.html">🧾 Orders</a></li>
+        <li><a href="profile.html">👤 Profile</a></li>
+        <li><a href="settings.html">⚙️ Settings</a></li>
+        </ul>
+      </nav>
+    </aside>
+
+    <main class="main-content">
+      <header class="header">
+        <button id="menuToggle" class="hamburger">&#9776;</button>
+        <h1>Settings</h1>
+        <div class="admin-info">
+          <span>admin@example.com</span>
+        </div>
+      </header>
+
+      <section class="settings-section">
+        <h2>Customize Settings</h2>
+        <form class="settings-form">
+          <div class="form-group">
+            <label for="theme">Theme</label>
+            <select id="theme">
+              <option value="light">Light</option>
+              <option value="dark">Dark</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="notifications">Email Notifications</label>
+            <input type="checkbox" id="notifications" checked />
+            <label for="notifications" class="inline">Enable</label>
+          </div>
+
+          <div class="form-group">
+            <label for="language">Language</label>
+            <select id="language">
+              <option value="en">English</option>
+              <option value="fr">French</option>
+              <option value="es">Spanish</option>
+            </select>
+          </div>
+
+          <hr />
+
+      <div class="form-group">
+        <label for="currentPassword">Current Password</label>
+        <input type="password" id="currentPassword" placeholder="Enter current password" required />
+      </div>
+
+      <div class="form-group">
+        <label for="newPassword">New Password</label>
+        <input type="password" id="newPassword" placeholder="Enter new password" required />
+      </div>
+
+      <div class="form-group">
+        <label for="confirmPassword">Confirm New Password</label>
+        <input type="password" id="confirmPassword" placeholder="Confirm new password" required />
+      </div>
+
+      <p class="password-error" id="passwordError"></p>
+
+
+          <div class="form-actions">
+            <button type="submit" class="save-btn">Save Settings</button>
+            <button type="reset" class="cancel-btn">Cancel</button>
+          </div>
+        </form>
+      </section>
+    </main>
+  </div>
+
+  <script src="settings.js"></script>
+</script>
+
+</body>
+</html>
+
+
+</body>
+</html>
