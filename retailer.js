@@ -188,7 +188,7 @@ function calculateTotal() {
   const shipping = subtotal > 0 ? 9.99 : 0;
   const total = subtotal + tax + shipping;
 
-  document.getElementById('subtotal').textContent = `$${subtotal.toFixed(2)}`;
+  document.getElementById('subtotal').textContent = `₦${subtotal.toFixed(2)}`;
   document.getElementById('tax').textContent = `$${tax.toFixed(2)}`;
   document.getElementById('shipping').textContent = subtotal > 0 ? `$${shipping.toFixed(2)}` : 'Free';
   document.getElementById('total').textContent = `$${total.toFixed(2)}`;

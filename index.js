@@ -55,7 +55,7 @@ document.addEventListener("DOMContentLoaded", () => {
         </div>
         <div class="product-info">
           <div class="product-title">${product.name}</div>
-          <div class="product-price">$${Number(product.price).toFixed(2)}</div>
+          <div class="product-price">₦${Number(product.price).toFixed(2)}</div>
           <div class="product-stock"><span>Category:</span> <span>${product.category}</span></div>
         </div>
       `;

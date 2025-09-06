@@ -47,6 +47,14 @@ const editName = document.getElementById("editName");
 const editPrice = document.getElementById("editPrice");
 const editCategory = document.getElementById("editCategory");
 
+// Price formatter (₦12,500.00)
+function formatPrice(amount) {
+  return new Intl.NumberFormat("en-NG", {
+    style: "currency",
+    currency: "NGN"
+  }).format(amount);
+}
+
 // Product Table
 const productList = document.getElementById("productList");
 
@@ -55,45 +63,49 @@ function loadProducts() {
 
   const q = query(collection(db, "products"), orderBy("createdAt", "desc"));
 
-  onSnapshot(q, (snapshot) => {
-    if (snapshot.empty) {
-      productList.innerHTML = "<tr><td colspan='5'>No products found.</td></tr>";
-      return;
+  onSnapshot(
+    q,
+    (snapshot) => {
+      if (snapshot.empty) {
+        productList.innerHTML = "<tr><td colspan='5'>No products found.</td></tr>";
+        return;
+      }
+
+      let html = "";
+      snapshot.forEach((doc) => {
+        const product = doc.data();
+        const id = doc.id;
+
+        html += `
+          <tr>
+            <td><img src="${product.img}" alt="${product.name}" class="product-thumbnail" /></td>
+            <td>${product.name}</td>
+            <td>${formatPrice(product.price)}</td>
+            <td>${product.category}</td>
+            <td class="action-buttons">
+              <button class="edit-btn" data-id="${id}">Edit</button>
+              <button class="delete-btn" data-id="${id}">Delete</button>
+            </td>
+          </tr>
+        `;
+      });
+
+      productList.innerHTML = html;
+      initButtons();
+    },
+    (error) => {
+      console.error("Error loading products:", error);
+      productList.innerHTML = `<tr><td colspan='5'>Error loading products: ${error.message}</td></tr>`;
     }
-
-    let html = "";
-    snapshot.forEach((doc) => {
-      const product = doc.data();
-      const id = doc.id;
-
-      html += `
-        <tr>
-          <td><img src="${product.img}" alt="${product.name}" class="product-thumbnail" /></td>
-          <td>${product.name}</td>
-          <td>$${product.price.toFixed(2)}</td>
-          <td>${product.category}</td>
-          <td class="action-buttons">
-            <button class="edit-btn" data-id="${id}">Edit</button>
-            <button class="delete-btn" data-id="${id}">Delete</button>
-          </td>
-        </tr>
-      `;
-    });
-
-    productList.innerHTML = html;
-    initButtons();
-  }, (error) => {
-    console.error("Error loading products:", error);
-    productList.innerHTML = `<tr><td colspan='5'>Error loading products: ${error.message}</td></tr>`;
-  });
+  );
 }
 
 // Add event listeners to Edit & Delete buttons
 function initButtons() {
   // 🗑 DELETE
-  document.querySelectorAll('.delete-btn').forEach(btn => {
-    btn.addEventListener('click', async (e) => {
-      const productId = e.target.getAttribute('data-id');
+  document.querySelectorAll(".delete-btn").forEach((btn) => {
+    btn.addEventListener("click", async (e) => {
+      const productId = e.target.getAttribute("data-id");
       const confirmDelete = confirm("Are you sure you want to delete this product?");
       if (!confirmDelete) return;
 
@@ -108,9 +120,9 @@ function initButtons() {
   });
 
   // ✏️ EDIT
-  document.querySelectorAll('.edit-btn').forEach(btn => {
-    btn.addEventListener('click', async (e) => {
-      const productId = e.target.getAttribute('data-id');
+  document.querySelectorAll(".edit-btn").forEach((btn) => {
+    btn.addEventListener("click", async (e) => {
+      const productId = e.target.getAttribute("data-id");
       try {
         const docRef = doc(db, "products", productId);
         const docSnap = await getDoc(docRef);
@@ -141,7 +153,7 @@ editForm.addEventListener("submit", async (e) => {
   const updatedData = {
     name: editName.value.trim(),
     price: parseFloat(editPrice.value),
-    category: editCategory.value
+    category: editCategory.value,
   };
 
   try {

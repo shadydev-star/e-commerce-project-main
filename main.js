@@ -48,6 +48,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
 const recentGrid = document.getElementById("recentProducts");
 
+
+function formatPrice(amount) {
+  return new Intl.NumberFormat('en-NG', {
+    style: 'currency',
+    currency: 'NGN'
+  }).format(amount);
+}
+
+
 function renderProduct(product) {
   return `
     <div class="product-card">
@@ -56,7 +65,7 @@ function renderProduct(product) {
       </div>
       <div class="product-info">
         <div class="product-title">${product.name}</div>
-        <div class="product-price">$${product.price.toFixed(2)}</div>
+        <div class="product-price">${formatPrice( product.price)}</div>
         <div class="product-stock"><span>Category:</span> <span>${product.category}</span></div>
       </div>
     </div>

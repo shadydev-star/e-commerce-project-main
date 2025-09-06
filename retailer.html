@@ -254,5 +254,35 @@
 
     <script type="module" src="retailer.js"></script>
 
+
+    <script type="module">
+  import { auth, db } from "./firebaseconfig.js";
+  import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js";
+  import { doc, getDoc } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
+
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) {
+      // Not logged in → send to login page
+      window.location.href = "auth.html";
+    } else {
+      // Logged in → check Firestore role
+      const userDoc = await getDoc(doc(db, "users", user.uid));
+      if (userDoc.exists()) {
+        const role = userDoc.data().role;
+
+        if (role !== "retailer") {
+          alert("❌ Access denied! Only retailers can view this page.");
+          window.location.href = "auth.html";
+        }
+      } else {
+        // No user record found → force logout
+        alert("User record not found.");
+        window.location.href = "auth.html";
+      }
+    }
+  });
+</script>
+
+
 </body>
 </html>

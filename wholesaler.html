@@ -1,4 +1,4 @@
-1<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -139,7 +139,7 @@
       <div class="stat-card">
         <div class="stat-icon" style="background: var(--success);"><i class="fas fa-dollar-sign"></i></div>
         <div class="stat-content">
-          <h3>$24,580</h3><p>Total Revenue</p>
+          <h3>₦24,580</h3><p>Total Revenue</p>
         </div>
       </div>
       <div class="stat-card">
@@ -184,16 +184,16 @@
           </thead>
           <tbody>
             <tr>
-              <td>#ORD-7841</td><td>John Smith</td><td>Jun 15, 2023</td><td>$289.99</td><td><span class="status status-shipped">Shipped</span></td><td><button class="btn btn-outline">View</button></td>
+              <td>#ORD-7841</td><td>John Smith</td><td>Jun 15, 2023</td><td>₦289.99</td><td><span class="status status-shipped">Shipped</span></td><td><button class="btn btn-outline">View</button></td>
             </tr>
             <tr>
-              <td>#ORD-7840</td><td>Sarah Johnson</td><td>Jun 14, 2025</td><td>$1,199.99</td><td><span class="status status-processing">Processing</span></td><td><button class="btn btn-outline">View</button></td>
+              <td>#ORD-7840</td><td>Sarah Johnson</td><td>Jun 14, 2025</td><td>₦1,199.99</td><td><span class="status status-processing">Processing</span></td><td><button class="btn btn-outline">View</button></td>
             </tr>
             <tr>
-              <td>#ORD-7839</td><td>Shady p</td><td>Jun 14, 2025</td><td>$599.99</td><td><span class="status status-delivered">Delivered</span></td><td><button class="btn btn-outline">View</button></td>
+              <td>#ORD-7839</td><td>Shady p</td><td>Jun 14, 2025</td><td>₦599.99</td><td><span class="status status-delivered">Delivered</span></td><td><button class="btn btn-outline">View</button></td>
             </tr>
             <tr>
-              <td>#ORD-7838</td><td>Emily Davis</td><td>Jun 13, 2023</td><td>$299.99</td><td><span class="status status-shipped">Shipped</span></td><td><button class="btn btn-outline">View</button></td>
+              <td>#ORD-7838</td><td>Emily Davis</td><td>Jun 13, 2023</td><td>₦299.99</td><td><span class="status status-shipped">Shipped</span></td><td><button class="btn btn-outline">View</button></td>
             </tr>
           </tbody>
         </table>
@@ -207,7 +207,7 @@
       </div>
       <div class="form-grid">
         <div class="form-group"><label for="product-name">Product Name</label><input type="text" id="product-name" placeholder="Enter product name" /></div>
-        <div class="form-group"><label for="product-price">Price ($)</label><input type="number" id="product-price" placeholder="Enter price" /></div>
+        <div class="form-group"><label for="product-price">Price (₦)</label><input type="number" id="product-price" placeholder="Enter price" /></div>
         <div class="form-group"><label for="product-category">Category</label>
           <select id="product-category">
             <option value="">Select category</option>
@@ -230,6 +230,36 @@
 
   <!-- Sidebar Toggle Script -->
  <script type="module" src="main.js"></script>
+
+
+ <script type="module">
+  import { auth, db } from "./firebaseconfig.js";
+  import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js";
+  import { doc, getDoc } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
+
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) {
+      // Not logged in → send to login
+      window.location.href = "auth.html";
+    } else {
+      // Logged in → check Firestore role
+      const userDoc = await getDoc(doc(db, "users", user.uid));
+      if (userDoc.exists()) {
+        const role = userDoc.data().role;
+
+        if (role !== "wholesaler") {
+          alert("❌ Access denied! Only wholesalers can view this page.");
+          window.location.href = "auth.html";
+        }
+      } else {
+        // No record found → logout
+        alert("User record not found.");
+        window.location.href = "auth.html";
+      }
+    }
+  });
+</script>
+
 
 
 </body>
