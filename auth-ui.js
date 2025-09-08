@@ -22,7 +22,7 @@ setPersistence(auth, browserSessionPersistence)
  *    This ensures users always start fresh here
  */
 signOut(auth).then(() => {
-  console.log("🔒 User signed out when visiting auth.html");
+  console.log("🔒 User signed out when visiting index.html");
 });
 
 /**

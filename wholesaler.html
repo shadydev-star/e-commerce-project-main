@@ -31,47 +31,46 @@
     }
 
    @media (max-width: 780px) {
-  .hamburger {
-    display: block;
-    z-index: 1101;
-  }
+      .hamburger {
+        display: block;
+        z-index: 1101;
+      }
 
-  .sidebar {
-    position: fixed;
-    top: 0;
-    left: -250px;
-    width: 250px;
-    height: 100%;
-    z-index: 1100;
-    background: linear-gradient(180deg, var(--primary), var(--secondary));
-    transition: left 0.3s ease;
-  }
+      .sidebar {
+        position: fixed;
+        top: 0;
+        left: -250px;
+        width: 250px;
+        height: 100%;
+        z-index: 1100;
+        background: linear-gradient(180deg, var(--primary), var(--secondary));
+        transition: left 0.3s ease;
+      }
 
-  .sidebar.active {
-    left: 0;
-  }
+      .sidebar.active {
+        left: 0;
+      }
 
-  .main-content {
-    transition: margin-left 0.3s ease;
-  }
+      .main-content {
+        transition: margin-left 0.3s ease;
+      }
 
-  .main-content.shifted {
-    margin-left: 250px;
-  }
+      .main-content.shifted {
+        margin-left: 250px;
+      }
 
-  .close-sidebar-btn {
-    display: block;
-  }
+      .close-sidebar-btn {
+        display: block;
+      }
 
-  .sidebar:not(.active) .close-sidebar-btn {
-    display: none;
-  }
+      .sidebar:not(.active) .close-sidebar-btn {
+        display: none;
+      }
 
-  .sidebar.active ~ .main-content .hamburger {
-    display: none;
-  }
-}
-
+      .sidebar.active ~ .main-content .hamburger {
+        display: none;
+      }
+    }
   </style>
 </head>
 <body>
@@ -81,7 +80,7 @@
     <button class="close-sidebar-btn" id="closeSidebar"><i class="fas fa-times"></i></button>
     <div class="menu">
       <div class="logo">
-        <h2><i class="fas fa-store"></i> <span>Admin</span></h2>
+        <h2><i class="fas fa-store"></i> <span>Wholesaler</span></h2>
       </div>
       <a class="link" href="index.html">
         <div class="menu-item active"><i class="fas fa-chart-line"></i> <span class="menu-text">Dashboard</span></div>
@@ -105,8 +104,9 @@
         <div class="menu-item"><i class="fas fa-user"></i> <span class="menu-text">Profile</span></div>
       </a>
 
-       <a class="link" href="retailer.html">
-        <div class="menu-item"><i class="fas fa-user"></i> <span class="menu-text">Retail side</span></div>
+       <!-- Retail Side (dynamic link will be added with JS) -->
+       <a class="link" id="retailLink">
+        <div class="menu-item"><i class="fas fa-store"></i> <span class="menu-text">Retail side</span></div>
       </a>
 
     </div>
@@ -117,13 +117,13 @@
     <!-- Header -->
     <div class="header">
       <button id="menuToggle" class="hamburger"><i class="fas fa-bars"></i></button>
-      <h1>Admins Dashboard</h1>
+      <h1>Wholesaler Dashboard</h1>
       <div class="user-info">
         <div class="notifications"><i class="fas fa-bell"></i></div>
         <div class="user-avatar">A</div>
         <div class="user-details">
-          <div class="user-name">Admin User</div>
-          <div class="user-role">Administrator</div>
+          <div class="user-name">Wholesaler User</div>
+          <div class="user-role">Wholesaler</div>
         </div>
       </div>
     </div>
@@ -199,48 +199,22 @@
         </table>
       </div>
     </div>
-
-    <!-- Hidden Add Product Form -->
-    <div class="section-card" id="product-form" style="display: none;">
-      <div class="section-header">
-        <h2>Add New Product</h2>
-      </div>
-      <div class="form-grid">
-        <div class="form-group"><label for="product-name">Product Name</label><input type="text" id="product-name" placeholder="Enter product name" /></div>
-        <div class="form-group"><label for="product-price">Price (₦)</label><input type="number" id="product-price" placeholder="Enter price" /></div>
-        <div class="form-group"><label for="product-category">Category</label>
-          <select id="product-category">
-            <option value="">Select category</option>
-            <option value="electronics">Electronics</option>
-            <option value="clothing">Clothing</option>
-            <option value="home">Home & Kitchen</option>
-            <option value="books">Books</option>
-          </select>
-        </div>
-        <div class="form-group"><label for="product-stock">Stock Quantity</label><input type="number" id="product-stock" placeholder="Enter quantity" /></div>
-        <div class="form-group"><label for="product-image">Product Image</label><input type="file" id="product-image" /></div>
-        <div class="form-group"><label for="product-description">Description</label><textarea id="product-description" placeholder="Enter product description"></textarea></div>
-      </div>
-      <div style="display: flex; gap: 15px; margin-top: 20px;">
-        <button class="btn btn-primary" id="save-product">Save Product</button>
-        <button class="btn btn-outline" id="cancel-product">Cancel</button>
-      </div>
-    </div>
   </div>
 
   <!-- Sidebar Toggle Script -->
  <script type="module" src="main.js"></script>
-
 
  <script type="module">
   import { auth, db } from "./firebaseconfig.js";
   import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js";
   import { doc, getDoc } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
 
+  const retailLink = document.getElementById("retailLink");
+
   onAuthStateChanged(auth, async (user) => {
     if (!user) {
       // Not logged in → send to login
-      window.location.href = "auth.html";
+      window.location.href = "index.html";
     } else {
       // Logged in → check Firestore role
       const userDoc = await getDoc(doc(db, "users", user.uid));
@@ -249,18 +223,19 @@
 
         if (role !== "wholesaler") {
           alert("❌ Access denied! Only wholesalers can view this page.");
-          window.location.href = "auth.html";
+          window.location.href = "index.html";
+        } else {
+          // ✅ Wholesaler → generate retail page link
+          retailLink.href = `retailer.html?uid=${user.uid}`;
         }
       } else {
         // No record found → logout
         alert("User record not found.");
-        window.location.href = "auth.html";
+        window.location.href = "index.html";
       }
     }
   });
 </script>
-
-
 
 </body>
 </html>

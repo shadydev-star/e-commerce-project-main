@@ -1,63 +1,44 @@
 import { db } from './firebaseconfig.js';
-import { collection, onSnapshot, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
+import { doc, collection, onSnapshot, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
 
 // === Initial Setup ===
 let cart = JSON.parse(localStorage.getItem('cart')) || {};
 updateCartCount();
 
-// === Loading Animation ===
-window.addEventListener('load', () => {
-  setTimeout(() => {
-    document.getElementById('loading').style.opacity = '0';
-    setTimeout(() => {
-      document.getElementById('loading').style.display = 'none';
-    }, 500);
-  }, 1500);
-});
+// ✅ Get wholesaler uid from URL
+const urlParams = new URLSearchParams(window.location.search);
+const wholesalerUid = urlParams.get("uid");
 
-// === Navbar Scroll Shadow ===
-window.addEventListener('scroll', () => {
-  const navbar = document.getElementById('navbar');
-  navbar.classList.toggle('scrolled', window.scrollY > 100);
-});
+if (!wholesalerUid) {
+  document.querySelector(".product-grid").innerHTML = `
+    <p style="text-align:center; padding:20px;">❌ No wholesaler selected. Please use a valid retail link.</p>
+  `;
+  document.getElementById("loading").style.display = "none";
+} else {
+  fetchProducts(wholesalerUid);
+}
 
-// === Hero Slider ===
-let currentSlide = 0;
-const slides = document.querySelectorAll('.slide');
-
-setInterval(() => {
-  slides[currentSlide].classList.remove('active');
-  currentSlide = (currentSlide + 1) % slides.length;
-  slides[currentSlide].classList.add('active');
-}, 4000);
-
-// === Featured Product Slider ===
-let currentFeatured = 0;
-const featuredSlides = document.querySelectorAll('.featured-slide');
-const featuredDots = document.querySelectorAll('.slider-dot');
-
-window.changeFeaturedSlide = function (index) {
-  featuredSlides[currentFeatured].classList.remove('active');
-  featuredDots[currentFeatured].classList.remove('active');
-  currentFeatured = index;
-  featuredSlides[currentFeatured].classList.add('active');
-  featuredDots[currentFeatured].classList.add('active');
-};
-
-setInterval(() => {
-  const nextIndex = (currentFeatured + 1) % featuredSlides.length;
-  changeFeaturedSlide(nextIndex);
-}, 5000);
-
-// === Fetch Products from Firestore ===
-function fetchProducts() {
+// === Fetch Products from Wholesaler's Firestore Subcollection ===
+function fetchProducts(wholesalerUid) {
   const productGrid = document.querySelector('.product-grid');
-  const productsRef = collection(db, 'products');
+  const loader = document.getElementById("loading");
+
+  const productsRef = collection(doc(db, "users", wholesalerUid), "products");
 
   onSnapshot(productsRef, (snapshot) => {
     productGrid.innerHTML = '';
-    snapshot.forEach(doc => {
-      const product = doc.data();
+    if (loader) loader.style.display = "none"; // ✅ Hide spinner
+
+    if (snapshot.empty) {
+      console.warn("⚠️ No products found for wholesaler:", wholesalerUid);
+      productGrid.innerHTML = `<p class="no-products">No products available from this wholesaler yet.</p>`;
+      return;
+    }
+
+    snapshot.forEach(docSnap => {
+      const product = docSnap.data();
+      console.log("✅ Loaded product:", docSnap.id, product);
+
       const card = document.createElement('div');
       card.className = 'product-card';
       card.innerHTML = `
@@ -66,7 +47,7 @@ function fetchProducts() {
         </div>
         <div class="product-info">
           <h3 class="product-title">${product.name}</h3>
-          <p class="product-price">$${product.price.toFixed(2)}</p>
+          <p class="product-price">₦${Number(product.price).toFixed(2)}</p>
           <button class="add-to-cart">Add to Cart</button>
         </div>
       `;
@@ -78,9 +59,12 @@ function fetchProducts() {
       card.style.transform = 'translateY(30px)';
       observer.observe(card);
     });
+  }, (err) => {
+    console.error("❌ Error fetching products:", err);
+    if (loader) loader.style.display = "none";
+    productGrid.innerHTML = `<p class="no-products">Failed to load products. Try again later.</p>`;
   });
 }
-fetchProducts();
 
 // === Add to Cart ===
 function addToCart(product) {
@@ -129,8 +113,6 @@ window.closeCheckout = function () {
 function renderCartItems() {
   const container = document.getElementById('cartItems');
   container.innerHTML = '';
- 
-
 
   if (Object.keys(cart).length === 0) {
     container.innerHTML = `
@@ -148,14 +130,14 @@ function renderCartItems() {
     div.innerHTML = `
       <div class="item-info">
         <div class="item-name"><img class="checkoutpic" src="${item.image}" > ${name}</div>
-        <div class="item-price">$${item.price.toFixed(2)} each</div>
+        <div class="item-price">₦${item.price.toFixed(2)} each</div>
       </div>
       <div class="quantity-controls">
         <button class="creasebtn" onclick="updateQuantity('${name}', -1)">-</button>
         <span>${item.quantity}</span>
         <button class="creasebtn" onclick="updateQuantity('${name}', 1)">+</button>
       </div>
-      <div class="item-total">$${(item.price * item.quantity).toFixed(2)}</div>
+      <div class="item-total">₦${(item.price * item.quantity).toFixed(2)}</div>
       <button class="removebtn" onclick="removeFromCart('${name}')">Remove</button>`;
     container.appendChild(div);
   });
@@ -185,13 +167,13 @@ window.removeFromCart = function (name) {
 function calculateTotal() {
   const subtotal = Object.values(cart).reduce((sum, item) => sum + item.price * item.quantity, 0);
   const tax = subtotal * 0.085;
-  const shipping = subtotal > 0 ? 9.99 : 0;
+  const shipping = subtotal > 0 ? 2000 : 0; // ₦2000 flat shipping
   const total = subtotal + tax + shipping;
 
   document.getElementById('subtotal').textContent = `₦${subtotal.toFixed(2)}`;
-  document.getElementById('tax').textContent = `$${tax.toFixed(2)}`;
-  document.getElementById('shipping').textContent = subtotal > 0 ? `$${shipping.toFixed(2)}` : 'Free';
-  document.getElementById('total').textContent = `$${total.toFixed(2)}`;
+  document.getElementById('tax').textContent = `₦${tax.toFixed(2)}`;
+  document.getElementById('shipping').textContent = subtotal > 0 ? `₦${shipping.toFixed(2)}` : 'Free';
+  document.getElementById('total').textContent = `₦${total.toFixed(2)}`;
 }
 
 // === Place Order ===
@@ -223,12 +205,13 @@ window.placeOrder = async function () {
     customer: formData,
     cart,
     total: document.getElementById('total').textContent,
+    wholesalerUid, // ✅ track which wholesaler order belongs to
     createdAt: serverTimestamp()
   };
 
   try {
     await addDoc(collection(db, 'orders'), order);
-    alert('Order placed!');
+    alert('✅ Order placed!');
     cart = {};
     localStorage.removeItem('cart');
     updateCartCount();
@@ -236,7 +219,7 @@ window.placeOrder = async function () {
     inputs.forEach(input => input.value = '');
   } catch (err) {
     console.error(err);
-    alert('Order failed!');
+    alert('❌ Order failed!');
   }
 };
 
@@ -262,15 +245,6 @@ function showToast(text, error = false) {
     setTimeout(() => toast.remove(), 300);
   }, 2000);
 }
-
-// === Smooth Scroll ===
-document.querySelectorAll('a[href^="#"]').forEach(link => {
-  link.addEventListener('click', e => {
-    e.preventDefault();
-    const target = document.querySelector(link.getAttribute('href'));
-    target?.scrollIntoView({ behavior: 'smooth' });
-  });
-});
 
 // === Product Scroll Animation ===
 const observer = new IntersectionObserver(entries => {
