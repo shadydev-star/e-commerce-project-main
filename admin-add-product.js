@@ -1,5 +1,6 @@
-import { db } from "./firebaseconfig.js";
+import { db, auth } from "./firebaseconfig.js";
 import {
+  doc,
   collection,
   addDoc,
   serverTimestamp
@@ -105,7 +106,14 @@ form.addEventListener("submit", async (e) => {
 
     statusText.textContent = "⏳ Saving product to database...";
 
-    await addDoc(collection(db, "products"), {
+    // ✅ Ensure user is logged in
+    const user = auth.currentUser;
+    if (!user) throw new Error("You must be logged in to upload products");
+
+    // ✅ Reference wholesaler's products subcollection
+    const productsRef = collection(doc(db, "users", user.uid), "products");
+
+    await addDoc(productsRef, {
       name,
       price,
       category,

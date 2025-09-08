@@ -1,4 +1,4 @@
-import { db } from "./firebaseconfig.js";
+import { db, auth } from "./firebaseconfig.js";
 import {
   collection,
   query,
@@ -61,7 +61,15 @@ const productList = document.getElementById("productList");
 function loadProducts() {
   productList.innerHTML = "<tr><td colspan='5'>Loading...</td></tr>";
 
-  const q = query(collection(db, "products"), orderBy("createdAt", "desc"));
+  const user = auth.currentUser;
+  if (!user) {
+    productList.innerHTML = "<tr><td colspan='5'>❌ Please log in to view products.</td></tr>";
+    return;
+  }
+
+  // ✅ Query wholesaler’s own products
+  const productsRef = collection(doc(db, "users", user.uid), "products");
+  const q = query(productsRef, orderBy("createdAt", "desc"));
 
   onSnapshot(
     q,
@@ -72,9 +80,9 @@ function loadProducts() {
       }
 
       let html = "";
-      snapshot.forEach((doc) => {
-        const product = doc.data();
-        const id = doc.id;
+      snapshot.forEach((docSnap) => {
+        const product = docSnap.data();
+        const id = docSnap.id;
 
         html += `
           <tr>
@@ -91,7 +99,7 @@ function loadProducts() {
       });
 
       productList.innerHTML = html;
-      initButtons();
+      initButtons(user.uid);
     },
     (error) => {
       console.error("Error loading products:", error);
@@ -101,7 +109,7 @@ function loadProducts() {
 }
 
 // Add event listeners to Edit & Delete buttons
-function initButtons() {
+function initButtons(userUid) {
   // 🗑 DELETE
   document.querySelectorAll(".delete-btn").forEach((btn) => {
     btn.addEventListener("click", async (e) => {
@@ -110,7 +118,7 @@ function initButtons() {
       if (!confirmDelete) return;
 
       try {
-        await deleteDoc(doc(db, "products", productId));
+        await deleteDoc(doc(db, "users", userUid, "products", productId));
         alert("✅ Product deleted!");
       } catch (err) {
         console.error("Error deleting product:", err);
@@ -124,7 +132,7 @@ function initButtons() {
     btn.addEventListener("click", async (e) => {
       const productId = e.target.getAttribute("data-id");
       try {
-        const docRef = doc(db, "products", productId);
+        const docRef = doc(db, "users", userUid, "products", productId);
         const docSnap = await getDoc(docRef);
 
         if (docSnap.exists()) {
@@ -149,6 +157,9 @@ function initButtons() {
 editForm.addEventListener("submit", async (e) => {
   e.preventDefault();
 
+  const user = auth.currentUser;
+  if (!user) return alert("❌ Not logged in");
+
   const id = editId.value;
   const updatedData = {
     name: editName.value.trim(),
@@ -157,7 +168,8 @@ editForm.addEventListener("submit", async (e) => {
   };
 
   try {
-    await updateDoc(doc(db, "products", id), updatedData);
+    const docRef = doc(db, "users", user.uid, "products", id);
+    await updateDoc(docRef, updatedData);
     alert("✅ Product updated!");
     editModal.style.display = "none";
   } catch (err) {
@@ -171,5 +183,11 @@ closeEditModal.addEventListener("click", () => {
   editModal.style.display = "none";
 });
 
-// Start loading products
-loadProducts();
+// Start loading products after auth is ready
+auth.onAuthStateChanged((user) => {
+  if (user) {
+    loadProducts();
+  } else {
+    productList.innerHTML = "<tr><td colspan='5'>❌ Please log in to manage products.</td></tr>";
+  }
+});

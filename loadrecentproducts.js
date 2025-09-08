@@ -1,10 +1,11 @@
-import { db } from "./firebaseconfig.js";
+import { db, auth } from "./firebaseconfig.js"; 
 import {
   collection,
   query,
   orderBy,
   limit,
-  onSnapshot
+  onSnapshot,
+  doc
 } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
 
 const recentGrid = document.getElementById("recentProducts");
@@ -23,15 +24,17 @@ function renderProduct(product) {
         <img class="product-pic" src="${product.img}" alt="${product.name}" />
       </div>
       <div class="product-info">
-        <div class="product-title">${product.name}<div class="product-price">${formatPrice( product.price)}</div>
+        <div class="product-title">${product.name}</div>
+        <div class="product-price">${formatPrice(product.price)}</div>
         <div class="product-stock"><span>Category:</span> <span>${product.category}</span></div>
       </div>
     </div>
   `;
 }
 
-function loadRecentProducts() {
-  const q = query(collection(db, "products"), orderBy("createdAt", "desc"), limit(4));
+function loadRecentProducts(userUid) {
+  const productsRef = collection(doc(db, "users", userUid), "products");
+  const q = query(productsRef, orderBy("createdAt", "desc"), limit(4));
 
   onSnapshot(q, (snapshot) => {
     if (snapshot.empty) {
@@ -40,8 +43,8 @@ function loadRecentProducts() {
     }
 
     recentGrid.innerHTML = ""; // Clear existing
-    snapshot.forEach(doc => {
-      const product = doc.data();
+    snapshot.forEach(docSnap => {
+      const product = docSnap.data();
       recentGrid.innerHTML += renderProduct(product);
     });
   }, (err) => {
@@ -50,4 +53,11 @@ function loadRecentProducts() {
   });
 }
 
-loadRecentProducts();
+// ✅ Wait for authentication before loading
+auth.onAuthStateChanged((user) => {
+  if (user) {
+    loadRecentProducts(user.uid);
+  } else {
+    recentGrid.innerHTML = "<p>❌ Please log in to see your recent products.</p>";
+  }
+});
