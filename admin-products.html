@@ -4,113 +4,107 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>prod management</title>
-    <link rel="stylesheet" href="admin.css"></head>
+    <link rel="stylesheet" href="admin.css">
+</head>
 <body>
-    
-
     <div class="admin-container">
      <aside class="sidebar" id="side-bar">
       <h2>Admin Panel</h2>
       <button id="closeSidebar" class="hamburger close-btn">&#10005;</button>
       <nav>
         <ul>
-        <li><a href="wholesaler.html">📊 Dashboard</a></li>
-        <li><a href="admin-products.html">📦 Products</a></li>
-        <li><a href="orders.html">🧾 Orders</a></li>
-        <li><a href="profile.html">👤 Profile</a></li>
-        <li><a href="settings.html">⚙️ Settings</a></li>
+          <li><a href="wholesaler.html">📊 Dashboard</a></li>
+          <li><a href="admin-products.html">📦 Products</a></li>
+          <li><a href="orders.html">🧾 Orders</a></li>
+          <li><a href="profile.html">👤 Profile</a></li>
+          <li><a href="settings.html">⚙️ Settings</a></li>
         </ul>
-
       </nav>
     </aside>
 
     <main class="main-content">
-     <header class="header">
+      <header class="header">
         <button id="menuToggle" class="hamburger">&#9776;</button>
         <h1>Welcome, Admin</h1>
         <div class="admin-info">
-        <span>admin@example.com</span>
-    </div>
-    </header>
+          <span>admin@example.com</span>
+        </div>
+      </header>
 
-    <section class="product-management">
+      <section class="product-management">
         <div class="pm-header">
             <h2>Product Management</h2>
            <a href="admin-add-product.html" class="save-btn">+ Add Product</a>
-
         </div>
 
         <table class="product-table">
-           <tr>
-            <th>Image</th>
-            <th>Name</th>
-            <th>Price (₦)</th>
-            <th>Category</th>
-            <th>Actions</th>
-            </tr>
-
-            <tbody id="productList">
-  <!-- Dynamic rows will be inserted here -->
-            </tbody>
-
+           <thead>
+             <tr>
+              <th>Image</th>
+              <th>Name</th>
+              <th>Price (₦)</th>
+              <th>Category</th>
+              <th>Actions</th>
+             </tr>
+           </thead>
+           <tbody id="productList">
+             <!-- Dynamic rows will be inserted here by adminproduct.js -->
+           </tbody>
         </table>
 
-                <!-- Edit Product Modal -->
+        <!-- Edit Product Modal -->
         <div class="modal" id="editModal">
-        <div class="modal-content">
+          <div class="modal-content">
             <h3>Edit Product</h3>
             <form id="editProductForm">
-            <input type="hidden" id="editId" />
+              <input type="hidden" id="editId" />
 
-            <label for="editName">Name</label>
-            <input type="text" id="editName" required />
+              <label for="editName">Name</label>
+              <input type="text" id="editName" required />
 
-            <label for="editPrice">Price</label>
-            <input type="number" id="editPrice" step="0.01" required />
+              <label for="editPrice">Price</label>
+              <input type="number" id="editPrice" step="0.01" required />
 
-            <label for="editCategory">Category</label>
-            <select id="editCategory" required>
-                <option value="electronics">Electronics</option>
-                <option value="clothing">Clothing</option>
-                <option value="food">Food</option>
-            </select>
+              <label for="editCategory">Category</label>
+              <select id="editCategory" required>
+                  <option value="electronics">Electronics</option>
+                  <option value="clothing">Clothing</option>
+                  <option value="food">Food</option>
+              </select>
 
-            <div class="modal-actions">
-                <button type="submit">Save Changes</button>
-                <button type="button" id="closeEditModal">Cancel</button>
-            </div>
+              <div class="modal-actions">
+                  <button type="submit">Save Changes</button>
+                  <button type="button" id="closeEditModal">Cancel</button>
+              </div>
             </form>
+          </div>
         </div>
-        </div>
+      </section>
+    </main>
 
-        </section>
-        </main>
+    <!-- Add Product Form (Hidden by default) -->
+    <div class="modal" id="productModal">
+      <div class="modal-content">
+        <h3>Add New Product</h3>
+        <form id="productForm">
+          <label>Product Name</label>
+          <input type="text" required>
 
-        <!-- Add Product Form (Hidden by default) -->
-        <div class="modal" id="productModal">
-        <div class="modal-content">
-            <h3>Add New Product</h3>
-            <form id="productForm">
-            <label>Product Name</label>
-            <input type="text" required>
+          <label>Price</label>
+          <input type="number" step="0.01" required>
 
-            <label>Price</label>
-            <input type="number" step="0.01" required>
+          <label>Stock</label>
+          <input type="number" required>
 
-            <label>Stock</label>
-            <input type="number" required>
-
-            <div class="modal-actions">
-                <button type="submit">Save</button>
-                <button type="button" id="closeModal">Cancel</button>
-            </div>
-            </form>
-        </div>
-        </div>
+          <div class="modal-actions">
+              <button type="submit">Save</button>
+              <button type="button" id="closeModal">Cancel</button>
+          </div>
+        </form>
+      </div>
     </div>
+  </div>
 
-
-    <script type="module" src="adminproduct.js"></script>
-
+  <script type="module" src="adminproduct.js"></script>
 </body>
 </html>
