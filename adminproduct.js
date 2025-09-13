@@ -76,7 +76,7 @@ function loadProducts() {
           <td>${priceFmt}</td>
           <td>${product.category || ""}</td>
           <td class="action-buttons">
-            <button class="manage-btn" data-id="${id}" data-scope="user">Manage</button>
+            <button class="manage-btn"  data-id="${id}" data-scope="user">Manage</button>
             <button class="edit-btn" data-id="${id}">Edit</button>
             <button class="delete-btn" data-id="${id}">Delete</button>
           </td>

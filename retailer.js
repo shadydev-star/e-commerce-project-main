@@ -1,7 +1,16 @@
 import { db } from './firebaseconfig.js';
-import { doc, collection, onSnapshot, getDocs, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
+import {
+  doc,
+  collection,
+  onSnapshot,
+  getDocs,
+  query,
+  where,
+  runTransaction,
+  serverTimestamp
+} from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
 
-// === CART STATE ===
+// === Initial Setup ===
 let cart = JSON.parse(localStorage.getItem('cart')) || {};
 updateCartCount();
 
@@ -9,9 +18,8 @@ updateCartCount();
 const urlParams = new URLSearchParams(window.location.search);
 const wholesalerUid = urlParams.get("uid");
 
-// === PRODUCT FETCH ===
 if (!wholesalerUid) {
-  document.querySelector("#productGrid").innerHTML = `
+  document.querySelector(".product-grid").innerHTML = `
     <p style="text-align:center; padding:20px;">❌ No wholesaler selected. Please use a valid retail link.</p>
   `;
   document.getElementById("loading").style.display = "none";
@@ -19,6 +27,7 @@ if (!wholesalerUid) {
   fetchProducts(wholesalerUid);
 }
 
+// === Fetch Products ===
 function fetchProducts(wholesalerUid) {
   const productGrid = document.getElementById('productGrid');
   const loader = document.getElementById("loading");
@@ -46,14 +55,13 @@ function fetchProducts(wholesalerUid) {
         <div class="product-info">
           <h3 class="product-title">${product.name}</h3>
           <p class="product-price">₦${Number(product.price).toFixed(2)}</p>
-          <button class="view-btn">View Details</button>
+          <button class="view-detail">View Details</button>
         </div>
       `;
-
-      card.querySelector('.view-btn').addEventListener('click', () => openProductModal(product));
+      card.querySelector('.view-detail').addEventListener('click', () => openProductModal(product));
       productGrid.appendChild(card);
 
-      // Animate
+      // Scroll animation
       card.style.opacity = '0';
       card.style.transform = 'translateY(30px)';
       observer.observe(card);
@@ -61,162 +69,127 @@ function fetchProducts(wholesalerUid) {
   }, (err) => {
     console.error("❌ Error fetching products:", err);
     if (loader) loader.style.display = "none";
-    productGrid.innerHTML = `<p class="no-products">Failed to load products. Try again later.</p>`;
+    productGrid.innerHTML = `<p class="no-products">Failed to load products.</p>`;
   });
 }
 
-// === PRODUCT MODAL ===
-const productModal = document.getElementById("productDetailModal");
-const closeProductModal = document.getElementById("closeProductModal");
-const detailName = document.getElementById("detailName");
-const detailPrice = document.getElementById("detailPrice");
-const detailCategory = document.getElementById("detailCategory");
-const detailImage = document.getElementById("detailImage");
-const variantColorsContainer = document.getElementById("variantColors");
-const variantSize = document.getElementById("variantSize");
-const variantStock = document.getElementById("variantStock");
-const addVariantToCart = document.getElementById("addVariantToCart");
+// === Product Detail Modal ===
+const productDetailModal = document.getElementById('productDetailModal');
+const closeProductModal = document.getElementById('closeProductModal');
+let selectedProduct = null;
+let selectedColor = null;
+let selectedSize = null;
 
-let currentProduct = null;
-let currentVariants = [];
+function openProductModal(product) {
+  selectedProduct = product;
 
-async function openProductModal(product) {
-  currentProduct = product;
-  detailName.textContent = product.name;
-  detailPrice.textContent = Number(product.price).toFixed(2);
-  detailCategory.textContent = product.category;
-  detailImage.src = product.img;
+  document.getElementById('detailImage').src = product.img;
+  document.getElementById('detailName').textContent = product.name;
+  document.getElementById('detailPrice').textContent = Number(product.price).toFixed(2);
+  document.getElementById('detailCategory').textContent = product.category;
 
-  variantColorsContainer.innerHTML = '';
-  variantSize.innerHTML = `<option value="">Select size</option>`;
-  variantStock.textContent = '';
+  // Clear old variants
+  document.getElementById('variantColors').innerHTML = '';
+  document.getElementById('variantSizes').innerHTML = '';
+  document.getElementById('variantStock').textContent = '';
 
-  // Fetch variants
+  // Load variants subcollection
   const variantsRef = collection(doc(db, "users", wholesalerUid, "products", product.id), "variants");
-  const snap = await getDocs(variantsRef);
 
-  currentVariants = [];
-  snap.forEach(docSnap => currentVariants.push({ id: docSnap.id, ...docSnap.data() }));
+  onSnapshot(variantsRef, (snapshot) => {
+    const colorsSet = new Set();
+    const sizesSet = new Set();
 
-  // Populate color badges with labels
-  const colors = [...new Set(currentVariants.map(v => v.color))];
-  colors.forEach(c => {
-    const wrapper = document.createElement("div");
-    wrapper.style.display = "flex";
-    wrapper.style.flexDirection = "column";
-    wrapper.style.alignItems = "center";
-    wrapper.style.gap = "4px";
-
-    const badge = document.createElement("div");
-    badge.className = "color-badge";
-    badge.style.backgroundColor = c.toLowerCase();
-    badge.dataset.color = c;
-
-    badge.addEventListener("click", () => {
-      document.querySelectorAll(".color-badge").forEach(b => b.classList.remove("selected"));
-      badge.classList.add("selected");
-      updateSizesForColor(c);
+    snapshot.forEach(docSnap => {
+      const variant = docSnap.data();
+      if (variant.color) colorsSet.add(variant.color);
+      if (variant.size) sizesSet.add(variant.size);
     });
 
-    const label = document.createElement("span");
-    label.textContent = c;
-    label.style.fontSize = "0.8rem";
-    label.style.color = "#333";
+    // Render color badges
+    colorsSet.forEach(color => {
+      const badge = document.createElement('div');
+      badge.className = 'color-badge';
+      badge.textContent = color;
+      badge.addEventListener('click', () => {
+        selectedColor = color;
+        document.querySelectorAll('.color-badge').forEach(el => el.classList.remove('selected'));
+        badge.classList.add('selected');
+        updateStockDisplay(snapshot);
+      });
+      document.getElementById('variantColors').appendChild(badge);
+    });
 
-    wrapper.appendChild(badge);
-    wrapper.appendChild(label);
-
-    variantColorsContainer.appendChild(wrapper);
+    // Render size badges
+    sizesSet.forEach(size => {
+      const badge = document.createElement('div');
+      badge.className = 'size-badge';
+      badge.textContent = size;
+      badge.addEventListener('click', () => {
+        selectedSize = size;
+        document.querySelectorAll('.size-badge').forEach(el => el.classList.remove('selected'));
+        badge.classList.add('selected');
+        updateStockDisplay(snapshot);
+      });
+      document.getElementById('variantSizes').appendChild(badge);
+    });
   });
 
-  productModal.style.display = "flex";
+  productDetailModal.style.display = 'flex';
 }
 
-// Close modal
-closeProductModal.addEventListener("click", () => {
-  productModal.style.display = "none";
-});
-
-// Update sizes when color selected
-function updateSizesForColor(color) {
-  variantSize.innerHTML = `<option value="">Select size</option>`;
-  variantStock.textContent = '';
-
-  const sizes = currentVariants.filter(v => v.color === color).map(v => v.size);
-  sizes.forEach(s => {
-    let opt = document.createElement('option');
-    opt.value = s;
-    opt.textContent = s;
-    variantSize.appendChild(opt);
+function updateStockDisplay(snapshot) {
+  let stockMsg = "Select color and size";
+  snapshot.forEach(docSnap => {
+    const variant = docSnap.data();
+    if (variant.color === selectedColor && variant.size === selectedSize) {
+      stockMsg = variant.status === "available"
+        ? `In stock (${variant.stock} left)`
+        : "Out of stock";
+    }
   });
+  document.getElementById('variantStock').textContent = stockMsg;
 }
 
-// Update stock when size selected
-variantSize.addEventListener("change", () => {
-  const selectedColorBadge = document.querySelector(".color-badge.selected");
-  if (!selectedColorBadge) return;
-
-  const selectedColor = selectedColorBadge.dataset.color;
-  const selectedSize = variantSize.value;
-
-  const variant = currentVariants.find(v => v.color === selectedColor && v.size === selectedSize);
-  if (variant) {
-    variantStock.textContent = `Stock: ${variant.stock} (${variant.status})`;
-  } else {
-    variantStock.textContent = '';
-  }
+closeProductModal.addEventListener('click', () => {
+  productDetailModal.style.display = 'none';
+  selectedProduct = null;
+  selectedColor = null;
+  selectedSize = null;
 });
 
-// === ADD VARIANT TO CART ===
-addVariantToCart.addEventListener("click", () => {
-  const selectedColorBadge = document.querySelector(".color-badge.selected");
-  const color = selectedColorBadge ? selectedColorBadge.dataset.color : null;
-  const size = variantSize.value;
-
-  if (!color || !size) {
-    alert("❌ Please select color and size");
+// === Add Variant to Cart ===
+document.getElementById('addVariantToCart').addEventListener('click', () => {
+  if (!selectedProduct || !selectedColor || !selectedSize) {
+    alert("Please select color and size.");
     return;
   }
 
-  const variant = currentVariants.find(v => v.color === color && v.size === size);
-  if (!variant) {
-    alert("❌ Invalid variant selection");
-    return;
-  }
-
-  const key = `${currentProduct.name} (${color}, ${size})`;
+  const key = `${selectedProduct.name} (${selectedColor}, ${selectedSize})`;
 
   if (cart[key]) {
     cart[key].quantity += 1;
   } else {
     cart[key] = {
       quantity: 1,
-      price: currentProduct.price,
-      image: currentProduct.img,
-      color,
-      size
+      price: selectedProduct.price,
+      image: selectedProduct.img,
+      color: selectedColor,
+      size: selectedSize,
+      productId: selectedProduct.id   // ✅ store productId for transactions
     };
   }
 
   localStorage.setItem('cart', JSON.stringify(cart));
   updateCartCount();
-  animateCart();
-  showToast(`${currentProduct.name} (${color}, ${size}) added to cart`);
-  productModal.style.display = "none";
+  showToast(`${selectedProduct.name} (${selectedColor}, ${selectedSize}) added to cart`);
+  productDetailModal.style.display = 'none';
 });
 
-// === CART FUNCTIONS ===
+// === Cart Logic ===
 function updateCartCount() {
   const totalItems = Object.values(cart).reduce((sum, item) => sum + item.quantity, 0);
   document.getElementById('cartCount').textContent = totalItems;
-}
-
-function animateCart() {
-  const cartIcon = document.querySelector('.cart-icon');
-  cartIcon.style.animation = 'none';
-  setTimeout(() => {
-    cartIcon.style.animation = 'bounce 0.5s ease';
-  }, 10);
 }
 
 window.openCheckout = function () {
@@ -231,6 +204,7 @@ window.closeCheckout = function () {
   document.body.style.overflow = 'auto';
 };
 
+// Render Cart Items
 function renderCartItems() {
   const container = document.getElementById('cartItems');
   container.innerHTML = '';
@@ -250,20 +224,30 @@ function renderCartItems() {
     div.className = 'cart-item';
     div.innerHTML = `
       <div class="item-info">
-        <div class="item-name"><img class="checkoutpic" src="${item.image}"> ${name}</div>
-        <div class="item-price">₦${item.price.toFixed(2)} each</div>
+        <img class="checkoutpic" src="${item.image}">
+        <div class="item-details">
+          <strong>${currentProductName(name)}</strong>
+          <small>Color: ${item.color} | Size: ${item.size}</small>
+        </div>
       </div>
+      <div class="item-price">₦${item.price.toFixed(2)} each</div>
       <div class="quantity-controls">
-        <button class="creasebtn" onclick="updateQuantity('${name}', -1)">-</button>
+        <button onclick="updateQuantity('${name}', -1)">-</button>
         <span>${item.quantity}</span>
-        <button class="creasebtn" onclick="updateQuantity('${name}', 1)">+</button>
+        <button onclick="updateQuantity('${name}', 1)">+</button>
       </div>
       <div class="item-total">₦${(item.price * item.quantity).toFixed(2)}</div>
-      <button class="removebtn" onclick="removeFromCart('${name}')">Remove</button>`;
+      <button class="removebtn" onclick="removeFromCart('${name}')">Remove</button>
+    `;
     container.appendChild(div);
   });
 }
 
+function currentProductName(fullName) {
+  return fullName.split(" (")[0];
+}
+
+// Update Quantity
 window.updateQuantity = function (name, change) {
   if (cart[name]) {
     cart[name].quantity += change;
@@ -284,6 +268,7 @@ window.removeFromCart = function (name) {
   showToast(`${name} removed from cart`, true);
 };
 
+// Totals
 function calculateTotal() {
   const subtotal = Object.values(cart).reduce((sum, item) => sum + item.price * item.quantity, 0);
   const tax = subtotal * 0.085;
@@ -296,6 +281,7 @@ function calculateTotal() {
   document.getElementById('total').textContent = `₦${total.toFixed(2)}`;
 }
 
+// === Place Order (transactional) ===
 window.placeOrder = async function () {
   if (Object.keys(cart).length === 0) {
     alert('Cart is empty!');
@@ -320,28 +306,60 @@ window.placeOrder = async function () {
     return;
   }
 
-  const order = {
-    customer: formData,
-    cart,
-    total: document.getElementById('total').textContent,
-    wholesalerUid,
-    createdAt: serverTimestamp()
-  };
-
   try {
-    await addDoc(collection(db, 'orders'), order);
+    await runTransaction(db, async (transaction) => {
+      // Loop cart items and update stocks
+      for (const [name, item] of Object.entries(cart)) {
+        const variantRef = doc(
+          db,
+          "users",
+          wholesalerUid,
+          "products",
+          item.productId,
+          "variants",
+          `${item.color}-${item.size}`
+        );
+
+        const vSnap = await transaction.get(variantRef);
+        if (!vSnap.exists()) throw new Error(`Variant not found for ${name}`);
+        const vData = vSnap.data();
+
+        if (vData.stock < item.quantity) {
+          throw new Error(`❌ Not enough stock for ${name}. Only ${vData.stock} left.`);
+        }
+
+        const newStock = vData.stock - item.quantity;
+        transaction.update(variantRef, {
+          stock: newStock,
+          status: newStock > 0 ? "available" : "out"
+        });
+      }
+
+      // Save order inside the transaction
+      const orderRef = doc(collection(db, 'orders'));
+      transaction.set(orderRef, {
+        customer: formData,
+        cart,
+        total: document.getElementById('total').textContent,
+        wholesalerUid,
+        createdAt: serverTimestamp()
+      });
+    });
+
     alert('✅ Order placed!');
     cart = {};
     localStorage.removeItem('cart');
     updateCartCount();
     closeCheckout();
     inputs.forEach(input => input.value = '');
+
   } catch (err) {
-    console.error(err);
-    alert('❌ Order failed!');
+    console.error("❌ Order failed:", err);
+    alert(`❌ Order failed: ${err.message}`);
   }
 };
 
+// Toast
 function showToast(text, error = false) {
   const toast = document.createElement('div');
   toast.textContent = text;
@@ -364,7 +382,7 @@ function showToast(text, error = false) {
   }, 2000);
 }
 
-// === Animation Observer ===
+// Scroll Animation
 const observer = new IntersectionObserver(entries => {
   entries.forEach(entry => {
     if (entry.isIntersecting) {

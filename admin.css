@@ -824,6 +824,14 @@ body.dark-theme button {
   background: #007bff;
   color: #fff;
 }
+.manage-btn {
+  background-color: #17d1ee;
+  color: #fff;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 5px;
+  cursor: pointer;
+}
 
 .variant-table .delete-btn {
   background: #dc3545;
@@ -868,4 +876,12 @@ body.dark-theme button {
 #variantModal button[type="button"] {
   background: #6c757d;
   color: #fff;
+}
+
+#productCategory{
+  font-size: 15px;
+}
+
+#productPrice{
+  font-size: 15px;
 }
