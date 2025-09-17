@@ -707,6 +707,14 @@
             margin: 0 1rem;
         }
 
+        .quantity-controls button{
+            background-color: red;
+            width: 30px;
+            height: 30px;
+            border-radius: 45px;
+            border: none;
+            color:white
+        }
         .quantity-btn {
             width: 35px;
             height: 35px;

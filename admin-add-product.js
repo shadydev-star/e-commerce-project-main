@@ -1,15 +1,10 @@
 // admin-add-product.js
-import { db, auth, storage } from "./firebaseconfig.js";
+import { db, auth } from "./firebaseconfig.js";
 import {
   collection,
   addDoc,
   serverTimestamp,
 } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
-import {
-  ref as storageRefFn,
-  uploadBytes,
-  getDownloadURL,
-} from "https://www.gstatic.com/firebasejs/11.9.1/firebase-storage.js";
 
 const addProductForm = document.getElementById("addProductForm");
 const statusEl = document.getElementById("status");
@@ -17,14 +12,13 @@ const imageInput = document.getElementById("image");
 const imagePreviewBox = document.getElementById("imagePreviewBox");
 const removeImageBtn = document.getElementById("removeImageBtn");
 
-// Image preview handlers (keep your existing behavior)
+// Image preview handlers
 imagePreviewBox?.addEventListener("click", () => imageInput.click());
 imageInput?.addEventListener("change", () => {
   const file = imageInput.files[0];
   if (file) {
     const reader = new FileReader();
     reader.onload = (e) => {
-      // graceful fallback if the span is not present
       const span = imagePreviewBox.querySelector("span");
       if (span) span.style.display = "none";
       imagePreviewBox.style.backgroundImage = `url(${e.target.result})`;
@@ -50,7 +44,7 @@ addProductForm.addEventListener("submit", async (e) => {
     const user = auth.currentUser;
     if (!user) {
       statusEl.textContent = "Please log in to add products.";
-      return window.location.href = "auth.html";
+      return (window.location.href = "auth.html");
     }
 
     const nameEl = document.getElementById("name");
@@ -67,15 +61,28 @@ addProductForm.addEventListener("submit", async (e) => {
       return;
     }
 
-    statusEl.textContent = "Uploading image...";
-    const storagePath = `users/${user.uid}/products/${Date.now()}_${imageFile.name}`;
-    const sRef = storageRefFn(storage, storagePath);
-    await uploadBytes(sRef, imageFile);
-    const imgUrl = await getDownloadURL(sRef);
+    // === Upload to Cloudinary ===
+    statusEl.textContent = "Uploading image to Cloudinary...";
 
+    const formData = new FormData();
+    formData.append("file", imageFile);
+    formData.append("upload_preset", "unsigned_ecommerce"); // ✅ your preset
+
+    const res = await fetch(
+      "https://api.cloudinary.com/v1_1/dhaxvswrr/image/upload",
+      {
+        method: "POST",
+        body: formData,
+      }
+    );
+
+    if (!res.ok) throw new Error("Cloudinary upload failed");
+    const data = await res.json();
+    const imgUrl = data.secure_url; // ✅ Cloudinary hosted URL
+
+    // === Save product to Firestore ===
     statusEl.textContent = "Saving product to Firestore...";
 
-    // Save under the wholesaler's subcollection: users/{uid}/products
     const productsRef = collection(db, "users", user.uid, "products");
     const docRef = await addDoc(productsRef, {
       name,
@@ -92,7 +99,7 @@ addProductForm.addEventListener("submit", async (e) => {
     if (span) span.style.display = "block";
     removeImageBtn.style.display = "none";
 
-    // redirect back to products page
+    // Redirect
     setTimeout(() => {
       window.location.href = "admin-products.html";
     }, 1200);

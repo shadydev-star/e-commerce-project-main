@@ -1,20 +1,21 @@
+// retailer.js
 import { db } from './firebaseconfig.js';
 import {
   doc,
   collection,
   onSnapshot,
-  getDocs,
+  addDoc,
+  serverTimestamp,
+  runTransaction,
   query,
   where,
-  runTransaction,
-  serverTimestamp
+  getDocs
 } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
 
 // === Initial Setup ===
 let cart = JSON.parse(localStorage.getItem('cart')) || {};
 updateCartCount();
 
-// ✅ Get wholesaler uid from URL
 const urlParams = new URLSearchParams(window.location.search);
 const wholesalerUid = urlParams.get("uid");
 
@@ -176,7 +177,7 @@ document.getElementById('addVariantToCart').addEventListener('click', () => {
       image: selectedProduct.img,
       color: selectedColor,
       size: selectedSize,
-      productId: selectedProduct.id   // ✅ store productId for transactions
+      productId: selectedProduct.id // ✅ Save productId for checkout
     };
   }
 
@@ -247,7 +248,6 @@ function currentProductName(fullName) {
   return fullName.split(" (")[0];
 }
 
-// Update Quantity
 window.updateQuantity = function (name, change) {
   if (cart[name]) {
     cart[name].quantity += change;
@@ -281,7 +281,7 @@ function calculateTotal() {
   document.getElementById('total').textContent = `₦${total.toFixed(2)}`;
 }
 
-// === Place Order (transactional) ===
+// === Place Order with Transaction ===
 window.placeOrder = async function () {
   if (Object.keys(cart).length === 0) {
     alert('Cart is empty!');
@@ -308,36 +308,36 @@ window.placeOrder = async function () {
 
   try {
     await runTransaction(db, async (transaction) => {
-      // Loop cart items and update stocks
       for (const [name, item] of Object.entries(cart)) {
-        const variantRef = doc(
-          db,
-          "users",
-          wholesalerUid,
-          "products",
-          item.productId,
-          "variants",
-          `${item.color}-${item.size}`
-        );
+        const productRef = doc(db, "users", wholesalerUid, "products", item.productId);
+        const variantsRef = collection(productRef, "variants");
 
-        const vSnap = await transaction.get(variantRef);
-        if (!vSnap.exists()) throw new Error(`Variant not found for ${name}`);
-        const vData = vSnap.data();
+        const variantSnap = await getDocs(query(
+          variantsRef,
+          where("color", "==", item.color),
+          where("size", "==", item.size)
+        ));
+        if (variantSnap.empty) throw new Error(`Variant not found for ${name}`);
 
-        if (vData.stock < item.quantity) {
-          throw new Error(`❌ Not enough stock for ${name}. Only ${vData.stock} left.`);
+        const variantDoc = variantSnap.docs[0];
+        const variantRef = variantDoc.ref;
+        const variantData = (await transaction.get(variantRef)).data();
+
+        if (!variantData) throw new Error(`Variant ${name} not found`);
+        if (variantData.stock < item.quantity) {
+          throw new Error(`❌ Not enough stock for ${name}. Only ${variantData.stock} left.`);
         }
 
-        const newStock = vData.stock - item.quantity;
+        // Deduct stock (only applied if whole transaction succeeds)
         transaction.update(variantRef, {
-          stock: newStock,
-          status: newStock > 0 ? "available" : "out"
+          stock: variantData.stock - item.quantity,
+          status: variantData.stock - item.quantity > 0 ? "available" : "out"
         });
       }
 
-      // Save order inside the transaction
-      const orderRef = doc(collection(db, 'orders'));
-      transaction.set(orderRef, {
+      // Save order document
+      const ordersRef = collection(db, 'orders');
+      transaction.set(doc(ordersRef), {
         customer: formData,
         cart,
         total: document.getElementById('total').textContent,
