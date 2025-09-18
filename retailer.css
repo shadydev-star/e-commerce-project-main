@@ -1055,6 +1055,7 @@
             align-items: center;
             justify-content: space-evenly;
             margin: 10px;
+            white-space: nowrap;
         }
 
         
@@ -1573,12 +1574,15 @@
   flex-direction: column;
   font-size: 0.9rem;
   color: #444;
+  white-space: nowrap;
 }
 .item-details small {
   color: #666;
+  white-space: nowrap;
 }
 .item-details strong{
     text-transform: capitalize;
+    white-space: nowrap;
 }
 .checkoutpic {
   width: 40px;
