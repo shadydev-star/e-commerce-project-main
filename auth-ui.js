@@ -1,37 +1,33 @@
-import { registerUser, loginUser } from "./auth.js";
+import { 
+  registerUser, 
+  loginUser, 
+  resetPassword 
+} from "./auth.js";
 import { auth, db } from "./firebaseconfig.js";
 import {
   onAuthStateChanged,
   setPersistence,
   browserSessionPersistence,
   signOut,
-  GoogleAuthProvider,
-  signInWithPopup,
-  sendPasswordResetEmail,
 } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js";
-import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
-
-import { googleLogin } from "./auth.js";
-
-document.getElementById("googleLoginBtn")?.addEventListener("click", async () => {
-  await googleLogin();
-});
-
+import { doc, getDoc } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
 
 /**
- * 🔹 Force session persistence
+ * 🔹 Session persistence (no auto-login on reload)
  */
 setPersistence(auth, browserSessionPersistence)
-  .then(() => console.log("✅ Session persistence set"))
+  .then(() => console.log("✅ Session persistence set. Users must log in manually."))
   .catch((err) => console.error("❌ Persistence error:", err));
 
 /**
- * 🔹 Always log out when visiting auth.html
+ * 🔹 Auto sign-out when visiting auth.html
  */
-signOut(auth).then(() => console.log("🔒 User signed out on auth.html"));
+signOut(auth).then(() => {
+  console.log("🔒 User signed out when visiting auth.html");
+});
 
 /**
- * 🔹 Handle Signup
+ * 🔹 Signup
  */
 document.getElementById("signupBtn")?.addEventListener("click", async (e) => {
   e.preventDefault();
@@ -45,12 +41,11 @@ document.getElementById("signupBtn")?.addEventListener("click", async (e) => {
     return;
   }
 
-  console.log("🟢 Signing up:", email, "as", role);
   await registerUser(email, password, role);
 });
 
 /**
- * 🔹 Handle Login
+ * 🔹 Login
  */
 document.getElementById("loginBtn")?.addEventListener("click", async (e) => {
   e.preventDefault();
@@ -63,54 +58,15 @@ document.getElementById("loginBtn")?.addEventListener("click", async (e) => {
     return;
   }
 
-  console.log("🟢 Attempting login:", email);
   await loginUser(email, password);
-});
-
-/**
- * 🔹 Google Sign-In
- */
-document.getElementById("googleSignInBtn")?.addEventListener("click", async () => {
-  const provider = new GoogleAuthProvider();
-
-  try {
-    const result = await signInWithPopup(auth, provider);
-    const user = result.user;
-
-    // Check if user already has a Firestore record
-    const userRef = doc(db, "users", user.uid);
-    const snap = await getDoc(userRef);
-
-    if (!snap.exists()) {
-      // Default role for Google sign-ins (can adjust logic)
-      await setDoc(userRef, {
-        email: user.email,
-        role: "retailer",
-        createdAt: new Date(),
-      });
-    }
-
-    console.log("✅ Google login successful:", user.email);
-  } catch (err) {
-    console.error("❌ Google sign-in error:", err);
-    alert(`Google Sign-In failed: ${err.message}`);
-  }
 });
 
 /**
  * 🔹 Forgot Password
  */
-document.getElementById("forgotPasswordBtn")?.addEventListener("click", async () => {
+document.getElementById("forgotPasswordLink")?.addEventListener("click", () => {
   const email = prompt("Enter your email to reset password:");
-  if (!email) return;
-
-  try {
-    await sendPasswordResetEmail(auth, email);
-    alert("✅ Password reset link sent to your email.");
-  } catch (err) {
-    console.error("❌ Password reset error:", err);
-    alert(`❌ Failed to send reset email: ${err.message}`);
-  }
+  if (email) resetPassword(email);
 });
 
 /**
@@ -124,7 +80,7 @@ onAuthStateChanged(auth, async (user) => {
   try {
     const userDoc = await getDoc(doc(db, "users", user.uid));
     if (!userDoc.exists()) {
-      alert("⚠️ Missing role information. Please contact support.");
+      alert("⚠️ Account missing role information. Please contact support.");
       return;
     }
 
@@ -132,7 +88,7 @@ onAuthStateChanged(auth, async (user) => {
     console.log("📄 User role:", role);
 
     if (role === "retailer") {
-      window.location.href = "retailer.html?uid=" + user.uid;
+      window.location.href = "retailer.html";
     } else if (role === "wholesaler") {
       window.location.href = "wholesaler.html";
     } else {
