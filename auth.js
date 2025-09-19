@@ -3,6 +3,9 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signOut,
+  sendPasswordResetEmail,
+  GoogleAuthProvider,
+  signInWithPopup
 } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js";
 import { doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
 
@@ -14,34 +17,16 @@ export async function registerUser(email, password, role) {
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;
 
-    // Always save role in Firestore
     await setDoc(doc(db, "users", user.uid), {
       email: user.email,
-      role: role, // "retailer" or "wholesaler"
+      role,
       createdAt: new Date(),
     });
 
     alert("✅ Account created successfully!");
     return user;
   } catch (error) {
-    let message = "❌ Something went wrong. Please try again.";
-
-    switch (error.code) {
-      case "auth/email-already-in-use":
-        message = "⚠️ This email is already registered. Please log in instead.";
-        break;
-      case "auth/invalid-email":
-        message = "⚠️ Invalid email address. Please check and try again.";
-        break;
-      case "auth/weak-password":
-        message = "⚠️ Password is too weak. Use at least 6 characters.";
-        break;
-      default:
-        message = "❌ " + error.message;
-    }
-
-    alert(message);
-    console.error("Signup error:", error);
+    handleAuthError(error, "signup");
   }
 }
 
@@ -53,37 +38,17 @@ export async function loginUser(email, password) {
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;
 
-    // Fetch role from Firestore (must exist since Option 1 is enforced)
     const userDoc = await getDoc(doc(db, "users", user.uid));
     if (userDoc.exists()) {
       const role = userDoc.data().role;
-      console.log("Logged in as:", role);
       alert(`✅ Welcome back! You are logged in as ${role}.`);
     } else {
-      console.warn("⚠️ User logged in but has no Firestore record.");
-      alert("⚠️ Account is missing role information. Please contact support.");
+      alert("⚠️ Account missing role info. Please contact support.");
     }
 
     return user;
   } catch (error) {
-    let message = "❌ Failed to log in. Please try again.";
-
-    switch (error.code) {
-      case "auth/user-not-found":
-        message = "⚠️ No account found with this email. Please sign up first.";
-        break;
-      case "auth/wrong-password":
-        message = "⚠️ Incorrect password. Please try again.";
-        break;
-      case "auth/invalid-email":
-        message = "⚠️ Invalid email format.";
-        break;
-      default:
-        message = "❌ " + error.message;
-    }
-
-    alert(message);
-    console.error("Login error:", error);
+    handleAuthError(error, "login");
   }
 }
 
@@ -98,4 +63,80 @@ export async function logoutUser() {
     console.error("Logout error:", error);
     alert("❌ Failed to log out. Please try again.");
   }
+}
+
+/**
+ * 🔹 Reset Password
+ */
+export async function resetPassword(email) {
+  try {
+    await sendPasswordResetEmail(auth, email);
+    alert("📩 Password reset email sent! Check your inbox.");
+  } catch (error) {
+    handleAuthError(error, "reset");
+  }
+}
+
+/**
+ * 🔹 Google Login
+ */
+export async function googleLogin() {
+  try {
+    const provider = new GoogleAuthProvider();
+    const result = await signInWithPopup(auth, provider);
+    const user = result.user;
+
+    // Check if user already has a record in Firestore
+    const userRef = doc(db, "users", user.uid);
+    const userDoc = await getDoc(userRef);
+
+    if (!userDoc.exists()) {
+      // Default new Google users to "retailer" role (you can change this logic)
+      await setDoc(userRef, {
+        email: user.email,
+        role: "retailer",
+        createdAt: new Date(),
+      });
+      alert("✅ Google account registered as Retailer!");
+    } else {
+      alert("✅ Logged in with Google!");
+    }
+
+    return user;
+  } catch (error) {
+    handleAuthError(error, "google");
+  }
+}
+
+/**
+ * 🔹 Helper: error handler
+ */
+function handleAuthError(error, context) {
+  let message = `❌ Something went wrong during ${context}.`;
+
+  switch (error.code) {
+    case "auth/email-already-in-use":
+      message = "⚠️ Email already registered.";
+      break;
+    case "auth/invalid-email":
+      message = "⚠️ Invalid email address.";
+      break;
+    case "auth/weak-password":
+      message = "⚠️ Weak password (min 6 chars).";
+      break;
+    case "auth/user-not-found":
+      message = "⚠️ No account found. Please sign up.";
+      break;
+    case "auth/wrong-password":
+      message = "⚠️ Incorrect password.";
+      break;
+    case "auth/popup-closed-by-user":
+      message = "⚠️ Google sign-in popup was closed.";
+      break;
+    default:
+      message = "❌ " + error.message;
+  }
+
+  alert(message);
+  console.error(`[${context}] error:`, error);
 }
