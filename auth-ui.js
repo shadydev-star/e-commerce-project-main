@@ -1,8 +1,4 @@
-import { 
-  registerUser, 
-  loginUser, 
-  resetPassword 
-} from "./auth.js";
+import { registerUser, loginUser, resetPassword } from "./auth.js";
 import { auth, db } from "./firebaseconfig.js";
 import {
   onAuthStateChanged,
@@ -13,25 +9,22 @@ import {
 import { doc, getDoc } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
 
 /**
- * 🔹 Session persistence (no auto-login on reload)
+ * 🔹 Force session persistence
  */
 setPersistence(auth, browserSessionPersistence)
-  .then(() => console.log("✅ Session persistence set. Users must log in manually."))
+  .then(() => console.log("✅ Session persistence set."))
   .catch((err) => console.error("❌ Persistence error:", err));
 
 /**
- * 🔹 Auto sign-out when visiting auth.html
+ * 🔹 Always logout when opening auth.html
  */
-signOut(auth).then(() => {
-  console.log("🔒 User signed out when visiting auth.html");
-});
+signOut(auth).then(() => console.log("🔒 Signed out on auth page"));
 
 /**
  * 🔹 Signup
  */
 document.getElementById("signupBtn")?.addEventListener("click", async (e) => {
   e.preventDefault();
-
   const email = document.getElementById("signupEmail").value.trim();
   const password = document.getElementById("signupPassword").value.trim();
   const role = document.getElementById("signupRole").value;
@@ -49,12 +42,11 @@ document.getElementById("signupBtn")?.addEventListener("click", async (e) => {
  */
 document.getElementById("loginBtn")?.addEventListener("click", async (e) => {
   e.preventDefault();
-
   const email = document.getElementById("loginEmail").value.trim();
   const password = document.getElementById("loginPassword").value.trim();
 
   if (!email || !password) {
-    alert("⚠️ Please enter both email and password.");
+    alert("⚠️ Enter both email and password.");
     return;
   }
 
@@ -62,40 +54,43 @@ document.getElementById("loginBtn")?.addEventListener("click", async (e) => {
 });
 
 /**
- * 🔹 Forgot Password
+ * 🔹 Reset Password (form version)
  */
-document.getElementById("forgotPasswordLink")?.addEventListener("click", () => {
-  const email = prompt("Enter your email to reset password:");
-  if (email) resetPassword(email);
+document.getElementById("resetBtn")?.addEventListener("click", async (e) => {
+  e.preventDefault();
+  const email = document.getElementById("resetEmail").value.trim();
+
+  if (!email) {
+    alert("⚠️ Enter your email to reset password.");
+    return;
+  }
+
+  await resetPassword(email);
 });
 
 /**
  * 🔹 Redirect after login
  */
 onAuthStateChanged(auth, async (user) => {
-  console.log("👀 Auth state changed:", user ? user.email : "No user");
-
   if (!user) return;
 
   try {
     const userDoc = await getDoc(doc(db, "users", user.uid));
     if (!userDoc.exists()) {
-      alert("⚠️ Account missing role information. Please contact support.");
+      alert("⚠️ Missing role info. Contact support.");
       return;
     }
 
     const { role } = userDoc.data();
-    console.log("📄 User role:", role);
-
     if (role === "retailer") {
       window.location.href = "retailer.html";
     } else if (role === "wholesaler") {
       window.location.href = "wholesaler.html";
     } else {
-      alert("⚠️ Unknown role. Please contact support.");
+      alert("⚠️ Unknown role. Contact support.");
     }
   } catch (err) {
-    console.error("❌ Error fetching role:", err);
-    alert("❌ Failed to fetch your role. Please try again.");
+    console.error("❌ Fetch role error:", err);
+    alert("❌ Failed to fetch user role.");
   }
 });
