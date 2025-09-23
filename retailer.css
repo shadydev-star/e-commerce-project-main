@@ -226,6 +226,7 @@
             color: white;
             z-index: 2;
             animation: fadeInUp 1s ease-out;
+            margin-top: 10%;
             
         }
 
@@ -244,7 +245,7 @@
         }
 
         .hero h1 {
-            font-size: 4rem;
+            font-size: 2rem;
             margin-bottom: 1rem;
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
             animation: textGlow 3s ease-in-out infinite alternate;
@@ -314,7 +315,7 @@
 
         /* retailers details*/
 
-       /* .retailer-detail{
+        .retailer-detail{
             height:50vh;
             position:absolute;
             left: 0;
@@ -323,16 +324,16 @@
             justify-content: center;
             position: relative;
             overflow: hidden;
-            background-color: red;
             
-        }*/
+            
+        }
 
     
-       /* .main-profile-pic{
+        .main-profile-pic{
             position: absolute;
             left: auto;
             bottom: 25vh;
-            top: 25vh;
+            top: 10vh;
             width: 250px;
             height: 250px;
             border-radius: 50%;
@@ -340,16 +341,16 @@
             border: none solid #ddd;
             box-shadow: 0 0 10px rgba(0,0,0,0.1);
             margin: auto;
-        }*/
+        }
 
-       /* .profile-info{
+        .profile-info{
             color: white;
             font-size: 25px;
             position: absolute;
             left: auto;
-            bottom: -9%;
-            font-family: fantasy;
-        }*/
+            top: 65%;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+        }
 
 
 
@@ -362,7 +363,7 @@
             
         }
         
-        @media(max-width:768px){
+        @media(max-width:700px){
             .retailer-detail{
             height:50vh;
             position:absolute;
@@ -378,7 +379,7 @@
         }
     
         .hero-content{
-            margin-top: auto;
+            margin-top: 30%;
             
         }
 
@@ -419,13 +420,13 @@
 
          .cta-button {
             display: inline-block;
-            padding: 5px;
+            padding: 10px;
             background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
             color: white;
             text-decoration: none;
             border-radius: 50px;
             font-weight: bold;
-            font-size: 15px;
+            font-size: 10px;
             text-transform: uppercase;
             letter-spacing: 1px;
             transition: all 0.3s ease;
@@ -438,58 +439,9 @@
             background: linear-gradient(45deg, #4ecdc4, #ff6b6b);
         }
 
-
-
         }
 
-        @media(min-width:768px){
-             .retailer-detail{
-            height:50vh;
-            position:absolute;
-            left: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            overflow: hidden;
-            
-            
-        }
-
-    
-        .main-profile-pic{
-            position: absolute;
-            left: auto;
-            bottom: 25vh;
-            top: 25vh;
-            width: 300px;
-            height: 300px;
-            border-radius: 50%;
-            overflow: hidden;
-            border: none;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-            margin: auto;
-        }
-
-         .profile-info{
-            color: white;
-            font-size: 25px;
-            position: absolute;
-            left: auto;
-            top: 80%;
-            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-        }
-
-        .pro-pic{
-            width: 100%;
-            height: 100%;
-            object-fit: cover; /* KEY: this makes sure it fills without distortion */
-            object-position: center;
-            display: block;
-            
-        }
-
-        }
+      
 
         /* Products Section */
         .products {
@@ -536,7 +488,7 @@
             border-radius: 2px;
         }
 
-        @media(max-width:425px){
+        @media(max-width:700px){
             .section-title{
             font-size: 1.5rem;
         }
@@ -577,7 +529,7 @@
 
         .product-pic{
             max-width: 100%;
-            
+            max-height: 100%;
             object-fit: cover;
             display: block;
         }
