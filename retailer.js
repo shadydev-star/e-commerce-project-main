@@ -4,7 +4,6 @@ import {
   doc,
   collection,
   onSnapshot,
-  addDoc,
   serverTimestamp,
   runTransaction,
   query,
@@ -89,60 +88,71 @@ function openProductModal(product) {
   document.getElementById('detailPrice').textContent = Number(product.price).toFixed(2);
   document.getElementById('detailCategory').textContent = product.category;
 
-  // Clear old variants
-  document.getElementById('variantColors').innerHTML = '';
-  document.getElementById('variantSizes').innerHTML = '';
+  // Reset variants
+  const colorsContainer = document.getElementById('variantColors');
+  const sizesContainer = document.getElementById('variantSizes');
+  colorsContainer.innerHTML = '';
+  sizesContainer.innerHTML = '';
+  sizesContainer.classList.remove('active'); // ✅ hide by default
   document.getElementById('variantStock').textContent = '';
 
   // Load variants subcollection
   const variantsRef = collection(doc(db, "users", wholesalerUid, "products", product.id), "variants");
 
   onSnapshot(variantsRef, (snapshot) => {
-    const colorsSet = new Set();
-    const sizesSet = new Set();
+    const variants = snapshot.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data() }));
+    const colorsSet = new Set(variants.map(v => v.color).filter(Boolean));
 
-    snapshot.forEach(docSnap => {
-      const variant = docSnap.data();
-      if (variant.color) colorsSet.add(variant.color);
-      if (variant.size) sizesSet.add(variant.size);
-    });
-
-    // Render color badges
+    // Render colors
+    colorsContainer.innerHTML = '';
     colorsSet.forEach(color => {
       const badge = document.createElement('div');
       badge.className = 'color-badge';
       badge.textContent = color;
+
       badge.addEventListener('click', () => {
         selectedColor = color;
+        selectedSize = null;
         document.querySelectorAll('.color-badge').forEach(el => el.classList.remove('selected'));
         badge.classList.add('selected');
-        updateStockDisplay(snapshot);
-      });
-      document.getElementById('variantColors').appendChild(badge);
-    });
 
-    // Render size badges
-    sizesSet.forEach(size => {
-      const badge = document.createElement('div');
-      badge.className = 'size-badge';
-      badge.textContent = size;
-      badge.addEventListener('click', () => {
-        selectedSize = size;
-        document.querySelectorAll('.size-badge').forEach(el => el.classList.remove('selected'));
-        badge.classList.add('selected');
-        updateStockDisplay(snapshot);
+        // Filter sizes for this color
+        const filteredSizes = new Set(
+          variants.filter(v => v.color === color).map(v => v.size).filter(Boolean)
+        );
+
+        // Show only these sizes
+        sizesContainer.innerHTML = '';
+        sizesContainer.classList.add('active'); // ✅ show sizes
+        filteredSizes.forEach(size => {
+          const sizeBadge = document.createElement('div');
+          sizeBadge.className = 'size-badge';
+          sizeBadge.textContent = size;
+
+          sizeBadge.addEventListener('click', () => {
+            selectedSize = size;
+            document.querySelectorAll('.size-badge').forEach(el => el.classList.remove('selected'));
+            sizeBadge.classList.add('selected');
+            updateStockDisplay(variants);
+          });
+
+          sizesContainer.appendChild(sizeBadge);
+        });
+
+        // Reset stock text
+        document.getElementById('variantStock').textContent = 'Select a size';
       });
-      document.getElementById('variantSizes').appendChild(badge);
+
+      colorsContainer.appendChild(badge);
     });
   });
 
   productDetailModal.style.display = 'flex';
 }
 
-function updateStockDisplay(snapshot) {
+function updateStockDisplay(variants) {
   let stockMsg = "Select color and size";
-  snapshot.forEach(docSnap => {
-    const variant = docSnap.data();
+  variants.forEach(variant => {
     if (variant.color === selectedColor && variant.size === selectedSize) {
       stockMsg = variant.status === "available"
         ? `In stock (${variant.stock} left)`
@@ -328,14 +338,14 @@ window.placeOrder = async function () {
           throw new Error(`❌ Not enough stock for ${name}. Only ${variantData.stock} left.`);
         }
 
-        // Deduct stock (only applied if whole transaction succeeds)
+        // Deduct stock
         transaction.update(variantRef, {
           stock: variantData.stock - item.quantity,
           status: variantData.stock - item.quantity > 0 ? "available" : "out"
         });
       }
 
-      // Save order document
+      // Save order
       const ordersRef = collection(db, 'orders');
       transaction.set(doc(ordersRef), {
         customer: formData,

@@ -1536,10 +1536,21 @@
     text-transform: capitalize;
     white-space: nowrap;
 }
+
 .checkoutpic {
   width: 40px;
   height: 40px;
   border-radius: 6px;
   object-fit: cover;
 }
+
+#variantSizes {
+  display: none;
+}
+#variantSizes.active {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
 
