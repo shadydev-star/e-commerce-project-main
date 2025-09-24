@@ -1439,51 +1439,133 @@
 }
 
 /* Mobile */
-@media (max-width: 600px) {
+@media (max-width: 700px) {
+
+    .modal-content {
+  background: #fff;
+  border-radius: 12px;
+  max-width: 230px;
+  width: 95%;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  animation: fadeInScale 0.3s ease;
+}
+
   .modal-body {
     flex-direction: column;
   }
+
+    .modal-image {
+    flex: 1;
+    min-width: 100px;
+    }
+    .modal-image img {
+    width: 30%;
+    margin-bottom: 2px;
+    border-radius: 8px;
+    object-fit: cover;
+    }
+
+    .modal-info {
+  flex: 0.5;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.modal-info h2 {
+  font-size: 1.1rem;
+  margin: 0;
+  text-transform: capitalize;
+}
+
+.modal-price {
+  font-size: 0.5rem;
+  font-weight: bold;
+  color: #27ae60;
+}
+
+.modal-category {
+  font-size: 0.85rem;
+  color: #555;
+}
+
+.variant-section {
+  margin-top: 4px;
+}
+.variant-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.view-detail{
+    background-color: #27ae60;
+    color: white;
+    border: none;
+    padding: 5px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    
+}
+
+/* Color Badges */
+.color-badge {
+  padding: 6px 12px;
+  border-radius: 5px;
+  cursor: pointer;
+  border: 1px solid #ddd;
+  background: #f7f7f7;
+  font-size: 0.85rem;
+  transition: 0.2s;
+}
+.color-badge.selected {
+  border: 2px solid #27ae60;
+  background: #eafaf1;
+}
+
+/* Size Badges */
+.size-badge {
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  border: 1px solid #ddd;
+  background: #f9f9f9;
+  font-size: 0.85rem;
+  transition: 0.2s;
+}
+.size-badge.selected {
+  border: 2px solid #27ae60;
+  background: #eafaf1;
+}
+
+.stock-status {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #555;
+}
+
+.add-to-cart-btn {
+  padding: 12px;
+  border: none;
+  border-radius: 8px;
+  background: #27ae60;
+  color: #fff;
+  font-size: 1rem;
+  cursor: pointer;
+  margin-top: 10px;
+  transition: background 0.2s;
+}
+.add-to-cart-btn:hover {
+  background: #219150;
+}
 }
 
 
-/* === Mobile Friendly Adjustments === */
-@media (max-width: 768px) {
-  .modal-content {
-    flex-direction: column;
-    max-width: 95%;
-    padding: 15px;
-  }
-
-  .product-detail {
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-  }
-
-  .detail-img {
-    width: 100%;
-    max-width: 50%;
-    height: auto;
-  }
-
-  .detail-info {
-    width: 100%;
-    align-items: center;
-  }
-
-  .variant-selectors {
-    width: 100%;
-  }
-
-  .variant-selectors select {
-    font-size: 1rem;
-  }
-
-  .add-to-cart-btn {
-    width: 100%;
-    font-size: 1.1rem;
-  }
-}
 
 /* === Modal Animation === */
 @keyframes fadeInScale {
@@ -1553,4 +1635,99 @@
   flex-wrap: wrap;
 }
 
+/* 🎥 Variant Video Preview (YouTube trailer style) */
+#videoPreviewBox {
+  margin-top: 1.5rem;
+  width: 250px;
+  height: 300px; /* smaller preview size */
+  aspect-ratio: 16 / 9;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #000;
+  display: none; /* hidden until variant is selected */
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  animation: fadeIn 0.5s ease;
+}
+
+#videoPreviewBox:hover {
+  transform: scale(1.03);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.4);
+}
+
+#videoPreviewBox video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  outline: none;
+  background: #000;
+  border-radius: 10px;
+}
+
+/* Subtle fade-in animation */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ▶ Play Overlay */
+.play-overlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 3rem;
+  color: white;
+  background: rgba(0,0,0,0.5);
+  border-radius: 50%;
+  padding: 15px 20px;
+  cursor: pointer;
+  transition: background 0.3s ease, transform 0.2s ease;
+}
+
+.play-overlay:hover {
+  background: rgba(255, 0, 0, 0.8);
+  transform: translate(-50%, -50%) scale(1.1);
+}
+
+@media(max-width: 700px){
+    #videoPreviewBox {
+  margin-top: 0.5rem;
+  max-width: 135px;
+  min-width: 50px;
+  display: flex;
+  flex-direction: row;
+  flex: 1;
+  height: 140px; /* smaller preview size */
+  aspect-ratio: 16 / 9;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #000;
+  display: none; /* hidden until variant is selected */
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  animation: fadeIn 0.5s ease;
+}
+
+#videoPreviewBox:hover {
+  transform: scale(1.03);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.4);
+}
+
+#videoPreviewBox video {
+  
+  object-fit: cover;
+  display: block;
+  outline: none;
+  background: #000;
+  border-radius: 10px;
+}
+
+/* Subtle fade-in animation */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+}
 

@@ -57,50 +57,57 @@
         </div>
 
         <table class="variant-table">
-          <thead>
-            <tr>
-              <th>Color</th>
-              <th>Size</th>
-              <th>Stock</th>
-              <th>Status</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody id="variantList">
-            <!-- Variants will load here -->
-          </tbody>
-        </table>
+  <thead>
+    <tr>
+      <th>Color</th>
+      <th>Size</th>
+      <th>Stock</th>
+      <th>Status</th>
+      <th>Video Preview</th> <!-- ✅ New Column -->
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody id="variantList">
+    <!-- Variants will load here -->
+  </tbody>
+</table>
+
       </section>
     </main>
   </div>
 
-  <!-- Add/Edit Variant Modal -->
-  <div class="modal" id="variantModal">
-    <div class="modal-content">
-      <h3 id="variantModalTitle">Add Variant</h3>
-      <form id="variantForm">
-        <label>Color</label>
-        <input type="text" id="variantColor" required>
+ <!-- Add/Edit Variant Modal -->
+<div class="modal" id="variantModal">
+  <div class="modal-content">
+    <h3 id="variantModalTitle">Add Variant</h3>
+    <form id="variantForm">
+      <label>Color</label>
+      <input type="text" id="variantColor" required>
 
-        <label>Size</label>
-        <input type="text" id="variantSize" required>
+      <label>Size</label>
+      <input type="text" id="variantSize" required>
 
-        <label>Stock</label>
-        <input type="number" id="variantStock" required>
+      <label>Stock</label>
+      <input type="number" id="variantStock" required>
 
-        <label>Status</label>
-        <select id="variantStatus" required>
-          <option value="available">Available</option>
-          <option value="out">Out of Stock</option>
-        </select>
+      <label>Status</label>
+      <select id="variantStatus" required>
+        <option value="available">Available</option>
+        <option value="out">Out of Stock</option>
+      </select>
 
-        <div class="modal-actions">
-          <button type="submit">Save</button>
-          <button type="button" id="closeVariantModal">Cancel</button>
-        </div>
-      </form>
-    </div>
+      <!-- ✅ New Video Upload (optional, max 10MB) -->
+      <label>Video Preview (max 10MB)</label>
+      <input type="file" id="variantVideo" accept="video/*">
+
+      <div class="modal-actions">
+        <button type="submit">Save</button>
+        <button type="button" id="closeVariantModal">Cancel</button>
+      </div>
+    </form>
   </div>
+</div>
+
 
   <script type="module" src="product-details.js"></script>
 </body>

@@ -1,4 +1,3 @@
-// product-details.js
 import { db, auth } from "./firebaseconfig.js";
 import {
   doc,
@@ -9,6 +8,10 @@ import {
   deleteDoc,
   updateDoc,
 } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
+
+// === Cloudinary Config ===
+const CLOUD_NAME = "dhaxvswrr";
+const UPLOAD_PRESET = "unsigned_ecommerce";
 
 // URL params
 const params = new URLSearchParams(window.location.search);
@@ -33,6 +36,7 @@ const variantColor = document.getElementById("variantColor");
 const variantSize = document.getElementById("variantSize");
 const variantStock = document.getElementById("variantStock");
 const variantStatus = document.getElementById("variantStatus");
+const variantVideo = document.getElementById("variantVideo");
 
 const addVariantBtn = document.getElementById("addVariantBtn");
 const variantModal = document.getElementById("variantModal");
@@ -141,7 +145,7 @@ function startListeningVariants() {
     (snap) => {
       if (snap.empty) {
         variantListEl.innerHTML =
-          "<tr><td colspan='5'>No variants yet.</td></tr>";
+          "<tr><td colspan='6'>No variants yet.</td></tr>";
         return;
       }
 
@@ -155,6 +159,13 @@ function startListeningVariants() {
             <td>${v.size || ""}</td>
             <td>${v.stock != null ? v.stock : ""}</td>
             <td>${v.status || ""}</td>
+            <td>
+              ${
+                v.video
+                  ? `<video src="${v.video}" width="100" height="80" controls muted></video>`
+                  : "—"
+              }
+            </td>
             <td>
               <button class="edit-variant" data-id="${vid}">Edit</button>
               <button class="delete-variant" data-id="${vid}">Delete</button>
@@ -172,6 +183,7 @@ function startListeningVariants() {
   );
 }
 
+
 // Add variant
 variantForm?.addEventListener("submit", async (e) => {
   e.preventDefault();
@@ -186,12 +198,47 @@ variantForm?.addEventListener("submit", async (e) => {
     return alert("Please fill all fields.");
   }
 
+  // ✅ Handle video upload
+  let videoUrl = null;
+  if (variantVideo.files.length > 0) {
+    const file = variantVideo.files[0];
+    if (file.size > 10 * 1024 * 1024) {
+      return alert("❌ Video must be ≤10MB.");
+    }
+
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("upload_preset", UPLOAD_PRESET);
+    formData.append("resource_type", "video");
+
+    try {
+      const res = await fetch(
+        `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/video/upload`,
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
+      const data = await res.json();
+      if (data.secure_url) {
+        videoUrl = data.secure_url;
+      } else {
+        console.error("Cloudinary error:", data);
+        return alert("❌ Failed to upload video.");
+      }
+    } catch (err) {
+      console.error("Upload error:", err);
+      return alert("❌ Video upload failed.");
+    }
+  }
+
   try {
     await addDoc(variantsCollectionRef, {
       color,
       size,
       stock,
       status,
+      video: videoUrl || null,
     });
     variantForm.reset();
     variantModal.style.display = "none"; // ✅ Close after save

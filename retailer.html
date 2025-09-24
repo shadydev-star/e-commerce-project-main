@@ -82,46 +82,44 @@
     </div>
   </section>
 
-  <!-- Quick View / Product Detail Modal -->
- <!-- Product Detail Modal -->
-<div class="modal-overlay" id="productDetailModal">
+<!-- Quick View / Product Detail Modal -->
+<div class="modal-overlay" id="productDetailModal" style="display:none;">
   <div class="modal-content">
     <button class="close-modal" id="closeProductModal">&times;</button>
 
     <div class="modal-body">
-      <!-- Left: Product Image -->
+      <!-- Left: Product Image + Video -->
       <div class="modal-image">
         <img id="detailImage" src="" alt="Product Image" class="detail-img">
+
+        <!-- 🎥 Video Preview -->
+        <div id="videoPreviewBox" class="video-preview" style="display:none;">
+          <video id="variantVideo" controls width="100%" style="border-radius: 10px; margin-top: 10px;">
+             <div class="play-overlay" id="playOverlay">▶</div>
+            Your browser does not support video playback.
+          </video>
+        </div>
       </div>
 
       <!-- Right: Product Info -->
-       <div class="modal-info">
+      <div class="modal-info">
         <h2 id="detailName">Product Name</h2>
         <p class="detail-price">₦<span id="detailPrice">0.00</span></p>
         <p class="modal-category">Category: <span id="detailCategory"></span></p>
 
-        <!-- ✅ Product Description -->
-        <p class="modal-description" id="detailDescription">
-          This is where the product description will appear.
-        </p>
-
         <!-- Variant Selection -->
         <div class="variant-section">
           <label>Color</label>
-          <div id="variantColors" class="variant-options">
-            <!-- Color badges injected by JS -->
-          </div>
+          <div id="variantColors" class="variant-options"></div>
         </div>
 
         <div class="variant-section">
           <label>Size</label>
-          <div id="variantSizes" class="variant-options">
-            <!-- Size badges injected by JS -->
-          </div>
+          <div id="variantSizes" class="variant-options"></div>
         </div>
 
         <!-- Stock -->
-        <p id="variantStock" class="stock-status">In stock</p>
+        <p id="variantStock" class="stock-status">Select a variant</p>
 
         <!-- Add to Cart -->
         <button id="addVariantToCart" class="add-to-cart-btn">Add to Cart</button>
@@ -129,6 +127,7 @@
     </div>
   </div>
 </div>
+
 
 
   <!-- Checkout Modal -->

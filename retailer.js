@@ -76,9 +76,15 @@ function fetchProducts(wholesalerUid) {
 // === Product Detail Modal ===
 const productDetailModal = document.getElementById('productDetailModal');
 const closeProductModal = document.getElementById('closeProductModal');
+
+// 🎥 Video preview elements
+const videoPreviewBox = document.getElementById('videoPreviewBox');
+const variantVideo = document.getElementById('variantVideo');
+
 let selectedProduct = null;
 let selectedColor = null;
 let selectedSize = null;
+let currentVariants = [];
 
 function openProductModal(product) {
   selectedProduct = product;
@@ -93,15 +99,19 @@ function openProductModal(product) {
   const sizesContainer = document.getElementById('variantSizes');
   colorsContainer.innerHTML = '';
   sizesContainer.innerHTML = '';
-  sizesContainer.classList.remove('active'); // ✅ hide by default
+  sizesContainer.classList.remove('active');
   document.getElementById('variantStock').textContent = '';
+
+  // Reset video
+  videoPreviewBox.style.display = "none";
+  variantVideo.src = "";
 
   // Load variants subcollection
   const variantsRef = collection(doc(db, "users", wholesalerUid, "products", product.id), "variants");
 
   onSnapshot(variantsRef, (snapshot) => {
-    const variants = snapshot.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data() }));
-    const colorsSet = new Set(variants.map(v => v.color).filter(Boolean));
+    currentVariants = snapshot.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data() }));
+    const colorsSet = new Set(currentVariants.map(v => v.color).filter(Boolean));
 
     // Render colors
     colorsContainer.innerHTML = '';
@@ -118,12 +128,12 @@ function openProductModal(product) {
 
         // Filter sizes for this color
         const filteredSizes = new Set(
-          variants.filter(v => v.color === color).map(v => v.size).filter(Boolean)
+          currentVariants.filter(v => v.color === color).map(v => v.size).filter(Boolean)
         );
 
         // Show only these sizes
         sizesContainer.innerHTML = '';
-        sizesContainer.classList.add('active'); // ✅ show sizes
+        sizesContainer.classList.add('active');
         filteredSizes.forEach(size => {
           const sizeBadge = document.createElement('div');
           sizeBadge.className = 'size-badge';
@@ -133,14 +143,17 @@ function openProductModal(product) {
             selectedSize = size;
             document.querySelectorAll('.size-badge').forEach(el => el.classList.remove('selected'));
             sizeBadge.classList.add('selected');
-            updateStockDisplay(variants);
+            updateStockDisplay(currentVariants);
+            updateVideoPreview(currentVariants);
           });
 
           sizesContainer.appendChild(sizeBadge);
         });
 
-        // Reset stock text
+        // Reset stock & video
         document.getElementById('variantStock').textContent = 'Select a size';
+        videoPreviewBox.style.display = "none";
+        variantVideo.src = "";
       });
 
       colorsContainer.appendChild(badge);
@@ -162,11 +175,26 @@ function updateStockDisplay(variants) {
   document.getElementById('variantStock').textContent = stockMsg;
 }
 
+// 🎥 Show/hide video depending on selected variant
+function updateVideoPreview(variants) {
+  const match = variants.find(v => v.color === selectedColor && v.size === selectedSize);
+  if (match && match.video) {   // ✅ fixed: use "video" instead of "videoUrl"
+    variantVideo.src = match.video;
+    videoPreviewBox.style.display = "block";
+  } else {
+    variantVideo.src = "";
+    videoPreviewBox.style.display = "none";
+  }
+}
+
 closeProductModal.addEventListener('click', () => {
   productDetailModal.style.display = 'none';
   selectedProduct = null;
   selectedColor = null;
   selectedSize = null;
+  videoPreviewBox.style.display = "none";
+  variantVideo.pause();
+  variantVideo.src = "";
 });
 
 // === Add Variant to Cart ===
@@ -187,7 +215,7 @@ document.getElementById('addVariantToCart').addEventListener('click', () => {
       image: selectedProduct.img,
       color: selectedColor,
       size: selectedSize,
-      productId: selectedProduct.id // ✅ Save productId for checkout
+      productId: selectedProduct.id 
     };
   }
 
